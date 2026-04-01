@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WatchTogether – Watch with Friends</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --card: #1a1a25;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --text: #f0f0f8;
+      --muted: #6b6b8a;
+      --border: #2a2a3a;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(124,58,237,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 80% 80%, rgba(6,182,212,0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 30% at 50% 50%, rgba(245,158,11,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 5rem 1.5rem 3rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.4);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      color: var(--accent2);
+      margin-bottom: 1.5rem;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 10vw, 7rem);
+      line-height: 1;
+      letter-spacing: 3px;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      max-width: 550px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    /* Main Card */
+    .main-card {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 1.5rem 2rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      background: var(--surface);
+      padding: 0.3rem;
+      border-radius: 12px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      margin-bottom: 1.2rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: white;
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124,58,237,0.4); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin-top: 0.75rem;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .divider {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin: 1rem 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    /* Features Grid */
+    .features {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.2s;
+    }
+
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--success);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { background: var(--danger); }
+
+    /* Error */
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: -0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      nav { padding: 1rem; }
+      .hero { padding: 3rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">WatchTogether</div>
+    <div class="nav-badge">BETA</div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge">
+      <span>🎬</span> Watch movies & shows in sync
+    </div>
+    <h1>Watch with<br /><span>Friends Together</span></h1>
+    <p>Share videos from YouTube, Google Drive, any website — or share your screen in 1080p 60fps. With voice chat.</p>
+  </section>
+
+  <div class="main-card">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('create')">Create Room</button>
+        <button class="tab-btn" onclick="switchTab('join')">Join Room</button>
+      </div>
+
+      <!-- CREATE ROOM TAB -->
+      <div id="tab-create" class="tab-panel active">
+        <label>Your Name</label>
+        <input type="text" id="create-username" placeholder="Enter your name..." maxlength="20" />
+        <button class="btn btn-primary" onclick="createRoom()">
+          🎬 Create a Room
+        </button>
+      </div>
+
+      <!-- JOIN ROOM TAB -->
+      <div id="tab-join" class="tab-panel">
+        <label>Your Name</label>
+        <input type="text" id="join-username" placeholder="Enter your name..." maxlength="20" />
+        <label>Room Code</label>
+        <input type="text" id="room-code" placeholder="Enter room code (e.g. AB12CD34)" maxlength="8" style="text-transform:uppercase;" />
+        <div id="join-error" class="error-msg" style="display:none;"></div>
+        <button class="btn btn-primary" onclick="joinRoom()">
+          🚀 Join Room
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🖥️</div>
+      <h3>Screen Share 1080p 60fps</h3>
+      <p>Share any tab, window, or full screen in ultra-high quality</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎙️</div>
+      <h3>Voice Chat</h3>
+      <p>Talk with your friends in real-time while watching</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">▶️</div>
+      <h3>YouTube & More</h3>
+      <p>Play videos from YouTube, Google Drive, or any URL</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>Perfect Sync</h3>
+      <p>Play, pause, and seek — everyone stays in sync</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Mobile Friendly</h3>
+      <p>Works on phones, tablets, and computers</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Live Chat</h3>
+      <p>React and chat while watching together</p>
+    </div>
+  </div>
+
+  <footer>
+    Made with ❤️ for movie nights &nbsp;•&nbsp; WatchTogether
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && tab === 'create') || (i === 1 && tab === 'join'));
+      });
+      document.getElementById('tab-create').classList.toggle('active', tab === 'create');
+      document.getElementById('tab-join').classList.toggle('active', tab === 'join');
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function createRoom() {
+      const username = document.getElementById('create-username').value.trim();
+      if (!username) { showToast('Please enter your name!', true); return; }
+
+      const btn = document.querySelector('#tab-create .btn-primary');
+      btn.innerHTML = '<span class="loading-spinner"></span>Creating...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/create-room', { method: 'POST' });
+        const data = await res.json();
+        // Save username to sessionStorage so room page can use it
+        sessionStorage.setItem('username', username);
+        window.location.href = `/room/${data.roomId}`;
+      } catch (e) {
+        showToast('Failed to create room. Try again.', true);
+        btn.innerHTML = '🎬 Create a Room';
+        btn.disabled = false;
+      }
+    }
+
+    async function joinRoom() {
+      const username = document.getElementById('join-username').value.trim();
+      const code = document.getElementById('room-code').value.trim().toUpperCase();
+      const errEl = document.getElementById('join-error');
+
+      if (!username) { showToast('Please enter your name!', true); return; }
+      if (!code || code.length !== 8) {
+        errEl.textContent = 'Room code must be 8 characters';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      const btn = document.querySelector('#tab-join .btn-primary');
+      btn.innerHTML = '<span class="loading-spinner"></span>Joining...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/room/${code}`);
+        const data = await res.json();
+        if (!data.exists) {
+          errEl.textContent = '❌ Room not found. Check the code!';
+          errEl.style.display = 'block';
+          btn.innerHTML = '🚀 Join Room';
+          btn.disabled = false;
+          return;
+        }
+        sessionStorage.setItem('username', username);
+        window.location.href = `/room/${code}`;
+      } catch (e) {
+        showToast('Connection error. Try again.', true);
+        btn.innerHTML = '🚀 Join Room';
+        btn.disabled = false;
+      }
+    }
+
+    // Allow pressing Enter to submit
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('tab-create').classList.contains('active')) createRoom();
+        else joinRoom();
+      }
+    });
+
+    // Auto-uppercase room code
+    document.getElementById('room-code')?.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+  </script>
+</body>
+</html>
