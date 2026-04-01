@@ -229,10 +229,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("voice-ice-candidate", ({ targetId, candidate }) => {
-    socket.to(targetId).emit("voice-ice-candidate", {
-      candidate,
-      fromId: socket.id,
-    });
+    socket.to(targetId).emit("voice-ice-candidate", { candidate, fromId: socket.id });
+  });
+
+  // Unified voice ICE (used by new client code)
+  socket.on("voice-ice", ({ targetId, candidate }) => {
+    socket.to(targetId).emit("voice-ice", { candidate, fromId: socket.id });
   });
 
   socket.on("voice-joined", ({ roomId }) => {

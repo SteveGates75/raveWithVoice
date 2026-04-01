@@ -8,581 +8,170 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --card: #1a1a25;
-      --accent: #7c3aed;
-      --accent2: #06b6d4;
-      --accent3: #f59e0b;
-      --text: #f0f0f8;
-      --muted: #6b6b8a;
-      --border: #2a2a3a;
-      --success: #10b981;
-      --danger: #ef4444;
-      --sidebar-w: 320px;
+      --bg: #0a0a0f; --surface: #13131a; --card: #1a1a25;
+      --accent: #7c3aed; --accent2: #06b6d4; --accent3: #f59e0b;
+      --text: #f0f0f8; --muted: #6b6b8a; --border: #2a2a3a;
+      --success: #10b981; --danger: #ef4444; --sidebar-w: 320px;
     }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; height:100dvh; display:flex; flex-direction:column; overflow:hidden; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* TOP BAR */
+    .topbar { display:flex; align-items:center; gap:.75rem; padding:.6rem 1rem; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
+    .logo-sm { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; white-space:nowrap; }
+    .room-code-display { background:rgba(124,58,237,.15); border:1px solid rgba(124,58,237,.4); border-radius:8px; padding:.3rem .7rem; font-size:.78rem; font-weight:700; color:var(--accent2); cursor:pointer; white-space:nowrap; }
+    .topbar-actions { display:flex; gap:.4rem; margin-left:auto; flex-wrap:wrap; }
+    .icon-btn { display:flex; align-items:center; gap:.35rem; padding:.4rem .75rem; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .18s; white-space:nowrap; }
+    .icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .icon-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .icon-btn.active-green { background:var(--success); border-color:var(--success); color:#fff; }
+    .icon-btn.active-red { background:var(--danger); border-color:var(--danger); color:#fff; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    /* MAIN LAYOUT */
+    .main-layout { display:flex; flex:1; overflow:hidden; }
+
+    /* VIDEO SECTION */
+    .video-section { flex:1; display:flex; flex-direction:column; overflow:hidden; background:#000; min-width:0; }
+    .video-container { flex:1; position:relative; background:#000; overflow:hidden; }
+
+    /* PLACEHOLDER */
+    .placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; background:radial-gradient(ellipse at center,#1a1a2e 0%,#000 70%); z-index:1; }
+    .placeholder-icon { font-size:3.5rem; }
+    .placeholder h2 { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:2px; color:var(--muted); }
+    .placeholder p { color:var(--muted); font-size:.85rem; text-align:center; padding:0 1.5rem; max-width:380px; line-height:1.6; }
+
+    /* IFRAME */
+    #video-frame { width:100%; height:100%; border:none; display:none; position:absolute; inset:0; }
+
+    /* SCREEN SHARE — RECEIVED */
+    #screen-video { width:100%; height:100%; object-fit:contain; display:none; background:#000; position:absolute; inset:0; }
+
+    /* LOCAL PREVIEW */
+    #local-video { width:100%; height:100%; object-fit:contain; display:none; background:#000; position:absolute; inset:0; }
+
+    /* ================================================================
+       CUSTOM DIRECT VIDEO PLAYER
+    ================================================================ */
+    #player-wrap { position:absolute; inset:0; display:none; background:#000; flex-direction:column; }
+    #player-wrap.visible { display:flex; }
+    #main-video { width:100%; flex:1; background:#000; object-fit:contain; display:block; cursor:pointer; min-height:0; }
+
+    /* Controls */
+    .ctrl-bar { flex-shrink:0; background:linear-gradient(0deg,rgba(0,0,0,.96) 0%,rgba(0,0,0,.55) 100%); padding:.5rem .75rem .4rem; display:flex; flex-direction:column; gap:.4rem; user-select:none; }
+    .seek-row { display:flex; align-items:center; gap:.5rem; }
+    .time-label { font-size:.72rem; color:#ccc; white-space:nowrap; min-width:90px; }
+    .seek-wrap { flex:1; position:relative; height:20px; display:flex; align-items:center; cursor:pointer; }
+    .seek-track { width:100%; height:4px; background:rgba(255,255,255,.2); border-radius:4px; position:relative; overflow:visible; transition:height .15s; }
+    .seek-wrap:hover .seek-track { height:6px; }
+    .seek-buffer { height:100%; background:rgba(255,255,255,.3); border-radius:4px; position:absolute; left:0; top:0; width:0; }
+    .seek-fill { height:100%; background:var(--accent); border-radius:4px; position:absolute; left:0; top:0; width:0; }
+    .seek-thumb { width:14px; height:14px; background:#fff; border-radius:50%; position:absolute; top:50%; transform:translate(-50%,-50%); pointer-events:none; box-shadow:0 0 4px rgba(0,0,0,.5); transition:transform .15s; }
+    .seek-wrap:hover .seek-thumb { transform:translate(-50%,-50%) scale(1.35); }
+    .ctrl-row { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+    .ctrl-btn { background:none; border:none; color:#fff; cursor:pointer; font-size:1rem; padding:.2rem .3rem; border-radius:4px; transition:background .15s; display:flex; align-items:center; justify-content:center; min-width:28px; }
+    .ctrl-btn:hover { background:rgba(255,255,255,.15); }
+    .ctrl-btn svg { width:18px; height:18px; fill:#fff; }
+    .vol-wrap { display:flex; align-items:center; gap:.3rem; }
+    .vol-slider { width:70px; height:4px; accent-color:var(--accent); cursor:pointer; }
+    .ctrl-select { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); border-radius:6px; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:.72rem; padding:.2rem .4rem; cursor:pointer; max-width:95px; }
+    .ctrl-select option { background:#1a1a25; color:#fff; }
+
+    /* Subtitle overlay */
+    .sub-display { position:absolute; bottom:85px; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; z-index:15; max-width:88%; }
+    .sub-text { display:inline-block; background:rgba(0,0,0,.78); color:#fff; font-size:clamp(.9rem,2.5vw,1.2rem); padding:.25rem .75rem; border-radius:6px; line-height:1.55; white-space:pre-wrap; }
+
+    /* Fullscreen btn for screen share viewers */
+    .fs-overlay-btn { position:absolute; top:.7rem; right:.7rem; z-index:20; background:rgba(0,0,0,.65); border:1px solid rgba(255,255,255,.25); border-radius:8px; color:#fff; font-size:.78rem; padding:.35rem .7rem; cursor:pointer; display:none; font-family:'Space Grotesk',sans-serif; font-weight:600; gap:.3rem; }
+    .fs-overlay-btn.visible { display:flex; align-items:center; }
+
+    /* Screen status bar for host */
+    .screen-status { display:none; position:absolute; bottom:.8rem; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); border:1px solid var(--border); border-radius:10px; padding:.4rem .9rem; gap:.7rem; align-items:center; font-size:.82rem; z-index:20; white-space:nowrap; }
+    .screen-status.visible { display:flex; }
+
+    /* Quality badge */
+    .quality-badge { position:absolute; top:.65rem; left:.65rem; z-index:20; background:rgba(0,0,0,.72); border:1px solid var(--success); color:var(--success); padding:.18rem .48rem; border-radius:5px; font-size:.68rem; font-weight:700; display:none; }
+    .quality-badge.visible { display:block; }
+
+    /* URL BAR */
+    .video-url-bar { display:flex; gap:.45rem; padding:.55rem .75rem; background:var(--surface); border-top:1px solid var(--border); flex-wrap:wrap; flex-shrink:0; }
+    .source-select { padding:.45rem .6rem; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.78rem; cursor:pointer; }
+    .url-input { flex:1; padding:.45rem .7rem; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.82rem; min-width:0; }
+    .url-input:focus { outline:none; border-color:var(--accent); }
+    .load-btn { padding:.45rem .9rem; background:var(--accent); border:none; border-radius:8px; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .load-btn:hover { background:#6d28d9; }
+
+    /* Subtitle drop */
+    .sub-drop { display:none; align-items:center; gap:.5rem; padding:.35rem .75rem; background:rgba(6,182,212,.07); border-top:1px solid rgba(6,182,212,.2); font-size:.78rem; color:var(--accent2); flex-shrink:0; flex-wrap:wrap; }
+    .sub-drop.visible { display:flex; }
+    .sub-file-btn { background:rgba(6,182,212,.14); border:1px solid rgba(6,182,212,.4); border-radius:6px; color:var(--accent2); font-family:'Space Grotesk',sans-serif; font-size:.75rem; font-weight:600; padding:.25rem .6rem; cursor:pointer; }
+    #sub-file-input { display:none; }
+
+    /* SIDEBAR */
+    .sidebar { width:var(--sidebar-w); display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--border); flex-shrink:0; }
+    .sidebar-tabs { display:flex; border-bottom:1px solid var(--border); }
+    .sidebar-tab { flex:1; padding:.7rem; border:none; background:transparent; color:var(--muted); font-family:'Space Grotesk',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; }
+    .sidebar-tab.active { color:var(--accent2); border-bottom-color:var(--accent2); }
+    .sidebar-panel { display:none; flex:1; flex-direction:column; overflow:hidden; }
+    .sidebar-panel.active { display:flex; }
+
+    /* USERS */
+    .users-list { flex:1; overflow-y:auto; padding:.75rem; }
+    .user-item { display:flex; align-items:center; gap:.65rem; padding:.5rem .65rem; border-radius:10px; margin-bottom:.4rem; background:var(--card); border:1px solid var(--border); transition:border-color .3s; }
+    .user-item.speaking { border-color:var(--success); background:rgba(16,185,129,.08); }
+    .user-avatar { width:34px; height:34px; border-radius:50%; background:rgba(124,58,237,.2); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .user-name { font-weight:600; font-size:.88rem; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .user-badges { display:flex; gap:.25rem; flex-shrink:0; }
+    .badge { font-size:.65rem; padding:.12rem .35rem; border-radius:4px; font-weight:700; }
+    .badge-host { background:rgba(245,158,11,.2); color:var(--accent3); }
+    .badge-mic  { background:rgba(16,185,129,.2);  color:var(--success); }
+
+    /* Voice info */
+    .voice-info { display:none; align-items:center; gap:.5rem; padding:.45rem .75rem; background:rgba(16,185,129,.08); border-top:1px solid rgba(16,185,129,.25); font-size:.8rem; }
+    .voice-info.show { display:flex; }
+    .voice-dot { width:8px; height:8px; border-radius:50%; background:var(--success); animation:vdot 1.2s ease infinite; }
+    @keyframes vdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+
+    /* CHAT */
+    .chat-messages { flex:1; overflow-y:auto; padding:.65rem; display:flex; flex-direction:column; gap:.5rem; }
+    .chat-msg { background:var(--card); border:1px solid var(--border); border-radius:12px 12px 12px 3px; padding:.5rem .65rem; }
+    .chat-msg.own { background:rgba(124,58,237,.12); border-color:rgba(124,58,237,.3); border-radius:12px 12px 3px 12px; }
+    .chat-msg-header { display:flex; align-items:center; gap:.35rem; margin-bottom:.2rem; }
+    .chat-msg-name { font-size:.72rem; font-weight:700; color:var(--accent2); }
+    .chat-msg-time { font-size:.62rem; color:var(--muted); margin-left:auto; }
+    .chat-msg-text { font-size:.85rem; line-height:1.5; word-break:break-word; }
+    .sys-msg { text-align:center; font-size:.72rem; color:var(--muted); padding:.2rem 0; }
+    .reactions-bar { display:flex; gap:.35rem; padding:.45rem .65rem; border-top:1px solid var(--border); overflow-x:auto; flex-shrink:0; }
+    .reaction-btn { border:1px solid var(--border); background:var(--card); border-radius:8px; padding:.25rem .5rem; font-size:1rem; cursor:pointer; transition:transform .15s; }
+    .reaction-btn:hover { transform:scale(1.3); }
+    .chat-input-area { display:flex; gap:.45rem; padding:.6rem; border-top:1px solid var(--border); flex-shrink:0; }
+    .chat-input { flex:1; padding:.5rem .65rem; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.85rem; }
+    .chat-input:focus { outline:none; border-color:var(--accent); }
+    .send-btn { padding:.5rem .8rem; background:var(--accent); border:none; border-radius:10px; color:#fff; cursor:pointer; font-size:1rem; }
+    .send-btn:hover { background:#6d28d9; }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(120px); background:var(--success); color:#fff; padding:.6rem 1.2rem; border-radius:100px; font-weight:600; font-size:.83rem; transition:transform .3s ease; z-index:9999; white-space:nowrap; pointer-events:none; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.err { background:var(--danger); }
+    .toast.inf { background:var(--accent); }
+
+    /* FLYING REACTIONS */
+    .rx-pop { position:fixed; font-size:2rem; pointer-events:none; animation:flyup 2s ease forwards; z-index:9998; }
+    @keyframes flyup { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-220px) scale(.4)} }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+
+    /* MOBILE */
+    .mobile-only { display:none; }
+    @media (max-width:768px) {
+      .mobile-only { display:flex; }
+      .sidebar { position:fixed; right:-100%; top:0; bottom:0; z-index:50; width:min(320px,100vw); transition:right .3s; }
+      .sidebar.open { right:0; }
+      .icon-btn .lbl { display:none; }
+      .vol-slider { width:50px; }
     }
-
-    /* ---- TOP BAR ---- */
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.7rem 1rem;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
-    .logo-sm {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      white-space: nowrap;
-    }
-
-    .room-code-display {
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.4);
-      border-radius: 8px;
-      padding: 0.3rem 0.7rem;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--accent2);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .topbar-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-left: auto;
-      flex-wrap: wrap;
-    }
-
-    .icon-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.45rem 0.85rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--card);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.18s;
-      white-space: nowrap;
-    }
-
-    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .icon-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-    .icon-btn.danger.active { background: var(--danger); border-color: var(--danger); }
-
-    /* ---- MAIN LAYOUT ---- */
-    .main-layout {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* ---- VIDEO SECTION ---- */
-    .video-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: #000;
-    }
-
-    .video-container {
-      flex: 1;
-      position: relative;
-      background: #000;
-      overflow: hidden;
-    }
-
-    #video-frame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: none;
-    }
-
-    #screen-video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: none;
-      background: #000;
-    }
-
-    #local-video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: none;
-      background: #000;
-    }
-
-    .placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      background: radial-gradient(ellipse at center, #1a1a2e 0%, #000 70%);
-    }
-
-    .placeholder-icon { font-size: 4rem; }
-    .placeholder h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; color: var(--muted); }
-    .placeholder p { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 0 1rem; }
-
-    /* ---- VIDEO CONTROLS ---- */
-    .video-url-bar {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.6rem 0.75rem;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-
-    .source-select {
-      padding: 0.5rem 0.7rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    .url-input {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      min-width: 0;
-    }
-
-    .url-input:focus { outline: none; border-color: var(--accent); }
-
-    .load-btn {
-      padding: 0.5rem 1rem;
-      background: var(--accent);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .load-btn:hover { background: #6d28d9; }
-
-    /* Screen share controls overlay */
-    .screen-controls {
-      display: none;
-      position: absolute;
-      bottom: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.5rem 1rem;
-      gap: 0.75rem;
-      align-items: center;
-      font-size: 0.85rem;
-      z-index: 10;
-    }
-
-    .screen-controls.visible { display: flex; }
-
-    /* ---- SIDEBAR ---- */
-    .sidebar {
-      width: var(--sidebar-w);
-      display: flex;
-      flex-direction: column;
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .sidebar-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sidebar-tab {
-      flex: 1;
-      padding: 0.75rem;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      border-bottom: 2px solid transparent;
-    }
-
-    .sidebar-tab.active {
-      color: var(--accent2);
-      border-bottom-color: var(--accent2);
-    }
-
-    .sidebar-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-    .sidebar-panel.active { display: flex; }
-
-    /* ---- USERS LIST ---- */
-    .users-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-
-    .user-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.6rem 0.75rem;
-      border-radius: 10px;
-      margin-bottom: 0.5rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      transition: all 0.2s;
-    }
-
-    .user-item.speaking { border-color: var(--success); background: rgba(16,185,129,0.1); }
-
-    .user-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: rgba(124,58,237,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .user-name {
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .user-badges {
-      margin-left: auto;
-      display: flex;
-      gap: 0.3rem;
-    }
-
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-weight: 700;
-    }
-
-    .badge-host { background: rgba(245,158,11,0.2); color: var(--accent3); }
-    .badge-sharing { background: rgba(6,182,212,0.2); color: var(--accent2); }
-    .badge-voice { background: rgba(16,185,129,0.2); color: var(--success); }
-
-    /* ---- CHAT ---- */
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .chat-msg {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px 12px 12px 4px;
-      padding: 0.6rem 0.75rem;
-    }
-
-    .chat-msg-header {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .chat-msg-avatar { font-size: 1rem; }
-
-    .chat-msg-name {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--accent2);
-    }
-
-    .chat-msg-time {
-      font-size: 0.65rem;
-      color: var(--muted);
-      margin-left: auto;
-    }
-
-    .chat-msg-text {
-      font-size: 0.88rem;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-
-    .chat-msg.own {
-      background: rgba(124,58,237,0.15);
-      border-color: rgba(124,58,237,0.3);
-      border-radius: 12px 12px 4px 12px;
-    }
-
-    .chat-input-area {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      border-top: 1px solid var(--border);
-    }
-
-    .chat-input {
-      flex: 1;
-      padding: 0.6rem 0.75rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.88rem;
-    }
-
-    .chat-input:focus { outline: none; border-color: var(--accent); }
-
-    .send-btn {
-      padding: 0.6rem 0.9rem;
-      background: var(--accent);
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-
-    .send-btn:hover { background: #6d28d9; }
-
-    /* Reactions */
-    .reactions-bar {
-      display: flex;
-      gap: 0.4rem;
-      padding: 0.5rem 0.75rem;
-      border-top: 1px solid var(--border);
-      overflow-x: auto;
-    }
-
-    .reaction-btn {
-      border: none;
-      background: var(--card);
-      border-radius: 8px;
-      padding: 0.3rem 0.6rem;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: transform 0.15s;
-      border: 1px solid var(--border);
-    }
-    .reaction-btn:hover { transform: scale(1.3); }
-
-    /* Flying reactions */
-    .reaction-popup {
-      position: fixed;
-      font-size: 2rem;
-      pointer-events: none;
-      animation: fly-up 2s ease forwards;
-      z-index: 999;
-    }
-
-    @keyframes fly-up {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-200px) scale(0.5); }
-    }
-
-    /* ---- TOAST ---- */
-    .toast {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--success);
-      color: white;
-      padding: 0.65rem 1.25rem;
-      border-radius: 100px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: transform 0.3s ease;
-      z-index: 1000;
-      white-space: nowrap;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.error { background: var(--danger); }
-    .toast.info { background: var(--accent); }
-
-    /* ---- VOICE BAR ---- */
-    .voice-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: rgba(16,185,129,0.1);
-      border-top: 1px solid rgba(16,185,129,0.3);
-    }
-
-    .voice-indicator {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse-green 1s ease infinite;
-    }
-
-    @keyframes pulse-green {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.3); }
-    }
-
-    /* ---- MOBILE BOTTOM BAR ---- */
-    .mobile-sidebar-toggle {
-      display: none;
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-    /* ---- RESPONSIVE ---- */
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        right: -100%;
-        top: 0;
-        bottom: 0;
-        z-index: 50;
-        transition: right 0.3s;
-        width: min(320px, 100vw);
-        border-left: 1px solid var(--border);
-      }
-
-      .sidebar.open { right: 0; }
-
-      .mobile-sidebar-toggle {
-        display: flex;
-      }
-
-      .topbar-actions .icon-btn span.label {
-        display: none;
-      }
-
-      .video-url-bar {
-        flex-wrap: wrap;
-      }
-
-      .source-select {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .topbar { gap: 0.5rem; }
-      .logo-sm { font-size: 1.1rem; }
-    }
-
-    /* Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2rem;
-      max-width: 400px;
-      width: 90%;
-    }
-    .modal h3 { margin-bottom: 1rem; font-size: 1.1rem; }
-    .modal input {
-      width: 100%;
-      padding: 0.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-    }
-    .modal input:focus { outline: none; border-color: var(--accent); }
-    .modal-btn-row { display: flex; gap: 0.75rem; }
-    .modal-btn {
-      flex: 1;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .modal-btn-primary { background: var(--accent); color: white; }
-    .modal-btn-cancel { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
-
-    /* Screen sharing quality indicator */
-    .quality-badge {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid var(--success);
-      color: var(--success);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      display: none;
-    }
-    .quality-badge.visible { display: block; }
+    @media (max-width:420px) { .logo-sm { font-size:1.1rem; } }
   </style>
 </head>
 <body>
@@ -590,60 +179,121 @@
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="logo-sm">WatchTogether</div>
-  <div class="room-code-display" onclick="copyRoomLink()" title="Click to copy invite link">
-    🔗 Room: <span id="room-code-display">------</span>
-  </div>
+  <div class="room-code-display" onclick="copyRoomLink()">🔗 <span id="room-code-txt">------</span></div>
   <div class="topbar-actions">
-    <button class="icon-btn" id="voice-btn" onclick="toggleVoice()">🎙️ <span class="label">Voice</span></button>
-    <button class="icon-btn" id="share-btn" onclick="toggleScreenShare()">🖥️ <span class="label">Share</span></button>
-    <button class="icon-btn mobile-sidebar-toggle" onclick="toggleSidebar()">💬 <span class="label">Chat</span></button>
-    <button class="icon-btn danger" onclick="leaveRoom()" style="border-color: var(--danger); color: var(--danger);">🚪</button>
+    <button class="icon-btn" id="voice-btn" onclick="toggleVoice()">🎙️ <span class="lbl">Voice</span></button>
+    <button class="icon-btn" id="mute-btn" onclick="toggleMute()" style="display:none;">🔇 <span class="lbl">Mute</span></button>
+    <button class="icon-btn" id="share-btn" onclick="toggleScreenShare()">🖥️ <span class="lbl">Share</span></button>
+    <button class="icon-btn mobile-only" onclick="toggleSidebar()">💬 <span class="lbl">Chat</span></button>
+    <button class="icon-btn" onclick="leaveRoom()" style="border-color:var(--danger);color:var(--danger);">🚪</button>
   </div>
 </div>
 
-<!-- MAIN LAYOUT -->
+<!-- MAIN -->
 <div class="main-layout">
-
-  <!-- VIDEO SECTION -->
   <div class="video-section">
     <div class="video-container" id="video-container">
-      <!-- Shown when no video is loaded -->
+
       <div class="placeholder" id="placeholder">
         <div class="placeholder-icon">🎬</div>
         <h2>No Video Playing</h2>
-        <p>Paste a YouTube link, Google Drive link, or any video URL below. Or share your screen!</p>
+        <p>Paste a direct video URL below and click Load. Or share your screen for Netflix / Prime / Disney+.</p>
       </div>
 
-      <!-- YouTube / iframe embed -->
-      <iframe id="video-frame" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
-
-      <!-- Screen share video (received from peer) -->
+      <iframe id="video-frame" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
       <video id="screen-video" autoplay playsinline></video>
+      <video id="local-video"  autoplay playsinline muted></video>
 
-      <!-- Local screen share preview -->
-      <video id="local-video" autoplay playsinline muted></video>
+      <!-- ============================================================
+           CUSTOM DIRECT PLAYER
+      ============================================================ -->
+      <div id="player-wrap">
+        <video id="main-video" playsinline></video>
 
-      <!-- Quality badge -->
+        <div class="sub-display" id="sub-display">
+          <span class="sub-text" id="sub-text"></span>
+        </div>
+
+        <div class="ctrl-bar">
+          <!-- Seek row -->
+          <div class="seek-row">
+            <span class="time-label" id="time-label">0:00 / 0:00</span>
+            <div class="seek-wrap" id="seek-wrap">
+              <div class="seek-track">
+                <div class="seek-buffer" id="seek-buffer"></div>
+                <div class="seek-fill"   id="seek-fill"></div>
+                <div class="seek-thumb"  id="seek-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons row -->
+          <div class="ctrl-row">
+            <button class="ctrl-btn" id="play-btn" onclick="playerTogglePlay()" title="Play/Pause (Space)">
+              <svg viewBox="0 0 24 24"><path id="play-icon-path" d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="ctrl-btn" onclick="playerSkip(-10)" title="Back 10s (←)">⏮10s</button>
+            <button class="ctrl-btn" onclick="playerSkip(10)"  title="Fwd 10s (→)">10s⏭</button>
+
+            <div class="vol-wrap">
+              <button class="ctrl-btn" id="vol-icon-btn" onclick="playerToggleMute()" title="Mute (M)">🔊</button>
+              <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.02" value="1"
+                oninput="playerSetVolume(this.value)" />
+            </div>
+
+            <div style="flex:1;"></div>
+
+            <select class="ctrl-select" onchange="playerSetSpeed(this.value)" title="Speed">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2">2×</option>
+            </select>
+
+            <select class="ctrl-select" id="audio-track-select" onchange="playerSetAudioTrack(this.value)" title="Audio Track" style="display:none;"></select>
+
+            <select class="ctrl-select" id="sub-track-select" onchange="playerSetSubTrack(this.value)" title="Subtitles">
+              <option value="-1">Subs: Off</option>
+            </select>
+
+            <button class="ctrl-btn" onclick="playerFullscreen()" title="Fullscreen (F)">
+              <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fullscreen btn for screen-share viewers -->
+      <button class="fs-overlay-btn" id="fs-overlay-btn" onclick="screenFullscreen()">⛶ Fullscreen</button>
+
       <div class="quality-badge" id="quality-badge">1080p 60fps</div>
 
-      <!-- Screen share controls overlay -->
-      <div class="screen-controls" id="screen-controls">
-        <span>🖥️ You are sharing your screen</span>
-        <button class="icon-btn danger active" onclick="stopScreenShare()">⏹ Stop Sharing</button>
+      <div class="screen-status" id="screen-status">
+        🖥️ <span>You are sharing your screen</span>
+        <button class="icon-btn active-red" onclick="stopScreenShare()" style="padding:.25rem .6rem;font-size:.75rem;">⏹ Stop</button>
       </div>
     </div>
 
-    <!-- URL / Source bar -->
+    <!-- URL BAR -->
     <div class="video-url-bar">
       <select class="source-select" id="source-select" onchange="onSourceChange()">
+        <option value="direct">🎬 Direct URL (.mp4/.mkv)</option>
         <option value="youtube">▶ YouTube</option>
         <option value="gdrive">☁ Google Drive</option>
-        <option value="url">🔗 Direct URL</option>
         <option value="iframe">🌐 Any Website</option>
       </select>
-      <input class="url-input" id="video-url-input"
-        placeholder="Paste YouTube, Google Drive, or video URL here..." />
+      <input class="url-input" id="video-url-input" placeholder="Paste direct .mp4 / .mkv / .webm / HLS stream URL here…" />
       <button class="load-btn" onclick="loadVideo()">▶ Load</button>
+    </div>
+
+    <!-- Subtitle loader -->
+    <div class="sub-drop" id="sub-drop">
+      📄 Subtitles:
+      <button class="sub-file-btn" onclick="document.getElementById('sub-file-input').click()">+ Load .SRT / .VTT file</button>
+      <input type="file" id="sub-file-input" accept=".srt,.vtt" onchange="loadSubtitleFile(this)" />
+      <span id="sub-loaded-name" style="color:var(--success);font-size:.75rem;"></span>
     </div>
   </div>
 
@@ -654,11 +304,8 @@
       <button class="sidebar-tab" onclick="switchSidebarTab('users')">👥 Users</button>
     </div>
 
-    <!-- CHAT PANEL -->
     <div class="sidebar-panel active" id="panel-chat">
       <div class="chat-messages" id="chat-messages"></div>
-
-      <!-- Reactions -->
       <div class="reactions-bar">
         <button class="reaction-btn" onclick="sendReaction('😂')">😂</button>
         <button class="reaction-btn" onclick="sendReaction('❤️')">❤️</button>
@@ -669,835 +316,917 @@
         <button class="reaction-btn" onclick="sendReaction('💀')">💀</button>
         <button class="reaction-btn" onclick="sendReaction('🍿')">🍿</button>
       </div>
-
       <div class="chat-input-area">
-        <input class="chat-input" id="chat-input" placeholder="Say something..." maxlength="300"
-          onkeydown="if(event.key==='Enter') sendMessage()" />
+        <input class="chat-input" id="chat-input" placeholder="Say something…" maxlength="300"
+          onkeydown="if(event.key==='Enter')sendMessage()" />
         <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
     </div>
 
-    <!-- USERS PANEL -->
     <div class="sidebar-panel" id="panel-users">
       <div class="users-list" id="users-list"></div>
-      <div class="voice-bar" id="voice-bar" style="display:none;">
-        <div class="voice-indicator"></div>
-        <span style="font-size:0.85rem;font-weight:600;">Voice Active</span>
-        <span id="voice-count" style="margin-left:auto;font-size:0.8rem;color:var(--muted);"></span>
+      <div class="voice-info" id="voice-info">
+        <div class="voice-dot"></div>
+        <span style="font-size:.82rem;font-weight:600;">Voice Active</span>
+        <span id="voice-count" style="margin-left:auto;font-size:.78rem;color:var(--muted);"></span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- Socket.IO (loaded from CDN) -->
 <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-
 <script>
-// =============================================================
-// ROOM.JS - All client-side logic for the watch party room
-// =============================================================
+'use strict';
 
-// ---- GET ROOM INFO FROM URL ----
-const roomId = window.location.pathname.split('/room/')[1];
-const username = sessionStorage.getItem('username') || 'Guest' + Math.floor(Math.random()*1000);
+// ================================================================
+// STATE
+// ================================================================
+const roomId   = location.pathname.split('/room/')[1];
+const username = sessionStorage.getItem('username') || 'Guest' + Math.floor(Math.random()*9000+1000);
 let mySocketId = null;
-let users = {};
-let currentVideoState = {};
+let users      = {};
+
+// Video sync
+let isSyncLocked  = false;
+let syncLockTimer = null;
+let seekDebounce  = null;
+
+// Screen share
 let isScreenSharing = false;
-let screenStream = null;
-let localStream = null; // voice stream
-let voiceActive = false;
-let isMuted = false;
+let screenStream    = null;
+const screenPeers   = {};    // peerId => RTCPeerConnection
 
-// WebRTC peer connections
-const screenPeers = {}; // socket.id => RTCPeerConnection (for screen share)
-const voicePeers = {}; // socket.id => RTCPeerConnection (for voice)
+// Voice — full mesh, every pair has own RTCPeerConnection
+let voiceActive      = false;
+let voiceMuted       = false;
+let localVoiceStream = null;
+const voicePeers     = {};   // peerId => { pc }
+const remoteAudios   = {};   // peerId => <audio>
 
-// ICE servers for WebRTC (needed to punch through firewalls)
-const iceServers = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:global.xirsys.com', username: 'public', credential: 'public' },
-  ]
-};
+// Subtitles
+let subCues   = [];
+let subActive = false;
 
-// ---- SOCKET CONNECTION ----
-const socket = io();
+// ICE servers (public STUN list for reliable NAT traversal)
+const ICE = { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302'  },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+]};
+
+// ================================================================
+// SOCKET
+// ================================================================
+const socket = io({ transports: ['websocket', 'polling'] });
 
 socket.on('connect', () => {
   mySocketId = socket.id;
-  console.log('Connected:', mySocketId);
-  document.getElementById('room-code-display').textContent = roomId;
-  // Join the room
+  document.getElementById('room-code-txt').textContent = roomId;
   socket.emit('join-room', { roomId, username });
 });
 
-// ---- ROOM STATE (received when first joining) ----
-socket.on('room-state', ({ users: roomUsers, videoState, messages, screenSharer }) => {
+socket.on('connect_error', () => showToast('Connection error — retrying…', 'err'));
+
+socket.on('room-state', ({ users: u, videoState, messages, screenSharer }) => {
   users = {};
-  roomUsers.forEach(u => users[u.id] = u);
+  u.forEach(x => users[x.id] = x);
   renderUsers();
-
-  // Load messages
   messages.forEach(m => appendMessage(m, m.userId === mySocketId));
-
-  // If there's already a video playing
-  if (videoState.url) {
-    currentVideoState = videoState;
-    loadVideoFromState(videoState);
-  }
-
-  // If someone is already sharing their screen, request it
+  if (videoState?.url) loadVideoFromState(videoState);
   if (screenSharer && screenSharer !== mySocketId) {
-    setTimeout(() => {
-      socket.emit('request-screen-share', { roomId, sharerId: screenSharer });
-    }, 1500);
+    setTimeout(() => socket.emit('request-screen-share', { roomId, sharerId: screenSharer }), 1200);
   }
 });
 
-socket.on('user-joined', (user) => {
+socket.on('user-joined', user => {
   users[user.id] = user;
   renderUsers();
-  showToast(`${user.username} joined! 👋`);
-  addSystemMessage(`${user.avatar} ${user.username} joined the room`);
-
-  // If I'm sharing screen, send offer to new user
-  if (isScreenSharing) {
-    setTimeout(() => createScreenOffer(user.id), 500);
-  }
-  // If I'm in voice, send voice offer to new user
-  if (voiceActive) {
-    setTimeout(() => createVoiceOffer(user.id), 800);
-  }
+  showToast(`${user.username} joined 👋`, 'inf');
+  addSysMsg(`${user.avatar} ${user.username} joined`);
+  if (isScreenSharing)  setTimeout(() => createScreenOffer(user.id), 500);
+  if (voiceActive)      setTimeout(() => createVoiceOffer(user.id),  800);
 });
 
 socket.on('user-left', ({ id }) => {
-  const user = users[id];
-  if (user) {
-    addSystemMessage(`${user.avatar} ${user.username} left the room`);
-    delete users[id];
-    renderUsers();
-  }
-  // Clean up WebRTC connections
-  if (screenPeers[id]) { screenPeers[id].close(); delete screenPeers[id]; }
-  if (voicePeers[id]) { voicePeers[id].close(); delete voicePeers[id]; }
+  if (users[id]) addSysMsg(`${users[id].avatar} ${users[id].username} left`);
+  delete users[id];
+  renderUsers();
+  cleanupPeer(id);
 });
 
-socket.on('users-update', (updatedUsers) => {
+socket.on('users-update', list => {
   users = {};
-  updatedUsers.forEach(u => users[u.id] = u);
+  list.forEach(u => users[u.id] = u);
   renderUsers();
 });
 
-// ---- VIDEO SYNC EVENTS ----
+// ---- Video sync ----
 socket.on('video-load', ({ url, videoType }) => {
   loadVideoFromState({ url, videoType, currentTime: 0, isPlaying: false });
 });
 
 socket.on('video-play', ({ currentTime }) => {
-  syncVideoPlay(currentTime);
+  const vid = getPlayer();
+  if (!vid) return;
+  lockSync(() => { vid.currentTime = currentTime; vid.play().catch(() => {}); });
+  updatePlayIcon(true);
 });
 
 socket.on('video-pause', ({ currentTime }) => {
-  syncVideoPause(currentTime);
+  const vid = getPlayer();
+  if (!vid) return;
+  lockSync(() => { vid.currentTime = currentTime; vid.pause(); });
+  updatePlayIcon(false);
 });
 
 socket.on('video-seek', ({ currentTime }) => {
-  syncVideoSeek(currentTime);
+  const vid = getPlayer();
+  if (!vid) return;
+  // BUG FIX: lock sync BEFORE setting currentTime to prevent seek echo
+  lockSync(() => { vid.currentTime = currentTime; });
 });
 
-// ---- SCREEN SHARE SIGNALING ----
-socket.on('screen-share-started', ({ sharerId, username: sharerName }) => {
-  showToast(`${sharerName} started screen sharing 🖥️`, 'info');
-  addSystemMessage(`🖥️ ${sharerName} is now sharing their screen`);
-  // Request the screen stream
+// ---- Screen share signaling ----
+socket.on('screen-share-started', ({ sharerId, username: uname }) => {
+  showToast(`${uname} is sharing their screen 🖥️`, 'inf');
+  addSysMsg(`🖥️ ${uname} started screen sharing`);
   socket.emit('request-screen-share', { roomId, sharerId });
 });
 
 socket.on('screen-share-stopped', () => {
-  const vid = document.getElementById('screen-video');
-  vid.srcObject = null;
-  vid.style.display = 'none';
-  document.getElementById('placeholder').style.display = 'flex';
+  const sv = document.getElementById('screen-video');
+  sv.srcObject = null; sv.style.display = 'none';
+  document.getElementById('fs-overlay-btn').classList.remove('visible');
   document.getElementById('quality-badge').classList.remove('visible');
-  addSystemMessage('🖥️ Screen sharing stopped');
+  document.getElementById('placeholder').style.display = 'flex';
+  addSysMsg('🖥️ Screen sharing ended');
   showToast('Screen sharing stopped');
 });
 
-// Sharer: a new viewer wants to see our screen
 socket.on('viewer-joined', ({ viewerId }) => {
   if (isScreenSharing) createScreenOffer(viewerId);
 });
 
-// Viewer: received an offer from the screen sharer
-socket.on('webrtc-offer', async ({ offer, fromId }) => {
-  await handleScreenOffer(offer, fromId);
-});
-
-// Sharer: received answer from viewer
+// WebRTC — screen
+socket.on('webrtc-offer',  async ({ offer, fromId })  => await handleScreenOffer(offer, fromId));
 socket.on('webrtc-answer', async ({ answer, fromId }) => {
-  if (screenPeers[fromId]) {
-    await screenPeers[fromId].setRemoteDescription(answer);
+  const pc = screenPeers[fromId];
+  if (pc && pc.signalingState !== 'stable') {
+    try { await pc.setRemoteDescription(answer); } catch(e) { console.warn('scr answer', e); }
   }
 });
-
-// Both: ICE candidates
 socket.on('ice-candidate', async ({ candidate, fromId }) => {
-  if (screenPeers[fromId]) {
-    try { await screenPeers[fromId].addIceCandidate(candidate); } catch(e) {}
-  }
+  const pc = screenPeers[fromId];
+  if (pc) try { await pc.addIceCandidate(candidate); } catch(e) {}
 });
 
-// ---- VOICE CHAT SIGNALING ----
-socket.on('new-voice-user', async ({ userId }) => {
-  if (voiceActive) {
-    await createVoiceOffer(userId);
-  }
+// WebRTC — voice
+// BUG FIX: separate socket events for voice vs screen-share so they never mix
+socket.on('new-voice-user', ({ userId }) => {
+  // Only create offer if we are the one in voice — avoid duplicate connection race
+  if (voiceActive && !voicePeers[userId] && userId !== mySocketId) createVoiceOffer(userId);
 });
-
-socket.on('voice-user-left', ({ userId }) => {
-  if (voicePeers[userId]) {
-    voicePeers[userId].close();
-    delete voicePeers[userId];
-  }
-  const audioEl = document.getElementById(`audio-${userId}`);
-  if (audioEl) audioEl.remove();
-});
-
-socket.on('voice-offer', async ({ offer, fromId }) => {
-  await handleVoiceOffer(offer, fromId);
-});
-
+socket.on('voice-user-left', ({ userId }) => cleanupVoicePeer(userId));
+socket.on('voice-offer',  async ({ offer, fromId })  => await handleVoiceOffer(offer, fromId));
 socket.on('voice-answer', async ({ answer, fromId }) => {
-  if (voicePeers[fromId]) {
-    await voicePeers[fromId].setRemoteDescription(answer);
+  const entry = voicePeers[fromId];
+  if (entry?.pc && entry.pc.signalingState !== 'stable') {
+    try { await entry.pc.setRemoteDescription(answer); } catch(e) { console.warn('voice answer', e); }
   }
 });
-
-socket.on('voice-ice-candidate', async ({ candidate, fromId }) => {
-  if (voicePeers[fromId]) {
-    try { await voicePeers[fromId].addIceCandidate(candidate); } catch(e) {}
-  }
+socket.on('voice-ice', async ({ candidate, fromId }) => {
+  const entry = voicePeers[fromId];
+  if (entry?.pc) try { await entry.pc.addIceCandidate(candidate); } catch(e) {}
 });
 
-// ---- CHAT ----
-socket.on('chat-message', (msg) => {
-  appendMessage(msg, msg.userId === mySocketId);
-  // Auto scroll
+// Chat / reactions
+socket.on('chat-message', m => {
+  appendMessage(m, m.userId === mySocketId);
   const c = document.getElementById('chat-messages');
   c.scrollTop = c.scrollHeight;
 });
+socket.on('reaction', ({ emoji }) => showFlyingReaction(emoji));
 
-// ---- REACTIONS ----
-socket.on('reaction', ({ emoji, username: uname }) => {
-  showFlyingReaction(emoji);
-});
-
-// ============================================================
-// SCREEN SHARING
-// ============================================================
+// ================================================================
+// SCREEN SHARE — HOST
+// ================================================================
 async function toggleScreenShare() {
-  if (isScreenSharing) {
-    stopScreenShare();
-  } else {
-    startScreenShare();
-  }
+  isScreenSharing ? stopScreenShare() : await startScreenShare();
 }
 
 async function startScreenShare() {
   try {
-    // Request screen capture with highest quality settings
     screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        frameRate: { ideal: 60, max: 60 },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        sampleRate: 48000
-      }
+      video: { frameRate:{ ideal:60, max:60 }, width:{ ideal:1920 }, height:{ ideal:1080 } },
+      audio: { echoCancellation:false, noiseSuppression:false, sampleRate:48000 }
     });
-
     isScreenSharing = true;
+    hideAllVideoEls();
 
-    // Show local preview
-    const localVid = document.getElementById('local-video');
-    localVid.srcObject = screenStream;
-    localVid.style.display = 'block';
-    document.getElementById('placeholder').style.display = 'none';
-    document.getElementById('video-frame').style.display = 'none';
-    document.getElementById('screen-controls').classList.add('visible');
+    const lv = document.getElementById('local-video');
+    lv.srcObject = screenStream;
+    lv.style.display = 'block';
+    document.getElementById('screen-status').classList.add('visible');
     document.getElementById('quality-badge').classList.add('visible');
-
-    // Update UI
     document.getElementById('share-btn').classList.add('active');
-    document.getElementById('share-btn').textContent = '⏹ Sharing';
+    document.getElementById('share-btn').innerHTML = '⏹ <span class="lbl">Sharing</span>';
 
-    // Tell server
     socket.emit('screen-share-start', { roomId });
-
-    // Send screen to all users already in the room
-    Object.keys(users).forEach(userId => {
-      if (userId !== mySocketId) {
-        createScreenOffer(userId);
-      }
+    Object.keys(users).filter(id => id !== mySocketId).forEach(id => {
+      setTimeout(() => createScreenOffer(id), 300);
     });
-
-    // When user stops sharing via browser's built-in stop button
-    screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-      stopScreenShare();
-    });
-
-    showToast('Screen sharing started! 🖥️', 'info');
-  } catch(err) {
-    console.error('Screen share error:', err);
-    if (err.name === 'NotAllowedError') {
-      showToast('Screen share permission denied', 'error');
-    } else {
-      showToast('Could not start screen share', 'error');
-    }
+    screenStream.getVideoTracks()[0].addEventListener('ended', stopScreenShare);
+    showToast('Screen sharing started 🖥️', 'inf');
+  } catch(e) {
+    showToast(e.name === 'NotAllowedError' ? 'Permission denied' : 'Could not share screen', 'err');
   }
 }
 
 function stopScreenShare() {
-  if (screenStream) {
-    screenStream.getTracks().forEach(t => t.stop());
-    screenStream = null;
-  }
-
+  if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
   isScreenSharing = false;
+  Object.keys(screenPeers).forEach(id => { try{screenPeers[id].close();}catch(e){} delete screenPeers[id]; });
 
-  // Close all peer connections
-  Object.keys(screenPeers).forEach(id => {
-    screenPeers[id].close();
-    delete screenPeers[id];
-  });
-
-  // Reset UI
-  const localVid = document.getElementById('local-video');
-  localVid.srcObject = null;
-  localVid.style.display = 'none';
-  document.getElementById('screen-controls').classList.remove('visible');
+  const lv = document.getElementById('local-video');
+  lv.srcObject = null; lv.style.display = 'none';
+  document.getElementById('screen-status').classList.remove('visible');
   document.getElementById('quality-badge').classList.remove('visible');
-  document.getElementById('placeholder').style.display = 'flex';
   document.getElementById('share-btn').classList.remove('active');
-  document.getElementById('share-btn').innerHTML = '🖥️ <span class="label">Share</span>';
+  document.getElementById('share-btn').innerHTML = '🖥️ <span class="lbl">Share</span>';
+  document.getElementById('placeholder').style.display = 'flex';
 
   socket.emit('screen-share-stop', { roomId });
   showToast('Screen sharing stopped');
 }
 
-// Create WebRTC offer to send our screen to a viewer
+// Create offer to a viewer
 async function createScreenOffer(targetId) {
-  const pc = new RTCPeerConnection(iceServers);
+  if (screenPeers[targetId]) { try{screenPeers[targetId].close();}catch(e){} }
+  const pc = new RTCPeerConnection(ICE);
   screenPeers[targetId] = pc;
 
-  // Add all tracks from screen stream
   screenStream.getTracks().forEach(track => {
     const sender = pc.addTrack(track, screenStream);
-    // Set encoding parameters for high quality
-    const params = sender.getParameters();
-    if (!params.encodings) params.encodings = [{}];
-    params.encodings[0].maxBitrate = 8000000; // 8 Mbps for 1080p60
-    params.encodings[0].maxFramerate = 60;
-    sender.setParameters(params).catch(() => {});
+    try {
+      const p = sender.getParameters();
+      if (!p.encodings?.length) p.encodings = [{}];
+      p.encodings[0].maxBitrate    = 10_000_000; // 10 Mbps → crisp 1080p60
+      p.encodings[0].maxFramerate  = 60;
+      sender.setParameters(p);
+    } catch(e) {}
   });
 
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit('ice-candidate', { targetId, candidate: e.candidate });
-    }
+  pc.onicecandidate = e => { if (e.candidate) socket.emit('ice-candidate', { targetId, candidate:e.candidate }); };
+  // BUG FIX: restart ICE on failure (fixes intermittent black screen)
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === 'failed') pc.restartIce();
   };
 
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  socket.emit('webrtc-offer', { targetId, offer, roomId });
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit('webrtc-offer', { targetId, offer: pc.localDescription, roomId });
+  } catch(e) { console.warn('createScreenOffer', e); }
 }
 
-// Handle incoming screen share offer (as viewer)
+// Handle offer as viewer
 async function handleScreenOffer(offer, fromId) {
-  const pc = new RTCPeerConnection(iceServers);
+  if (screenPeers[fromId]) { try{screenPeers[fromId].close();}catch(e){} }
+  const pc = new RTCPeerConnection(ICE);
   screenPeers[fromId] = pc;
 
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit('ice-candidate', { targetId: fromId, candidate: e.candidate });
-    }
-  };
+  pc.onicecandidate = e => { if (e.candidate) socket.emit('ice-candidate', { targetId:fromId, candidate:e.candidate }); };
+  pc.oniceconnectionstatechange = () => { if (pc.iceConnectionState === 'failed') pc.restartIce(); };
 
-  // When we receive the screen stream tracks
-  pc.ontrack = (event) => {
-    console.log('Received screen track:', event.track.kind);
-    const vid = document.getElementById('screen-video');
-    vid.srcObject = event.streams[0];
-    vid.style.display = 'block';
+  // BUG FIX: Build MediaStream manually from tracks — don't rely on event.streams
+  // which can be empty in some Chrome/Safari versions
+  const receivedStream = new MediaStream();
+  pc.ontrack = e => {
+    receivedStream.addTrack(e.track);
+    const sv = document.getElementById('screen-video');
+    sv.srcObject = receivedStream;
+    sv.style.display = 'block';
     document.getElementById('local-video').style.display = 'none';
     document.getElementById('video-frame').style.display = 'none';
+    document.getElementById('player-wrap').classList.remove('visible');
     document.getElementById('placeholder').style.display = 'none';
     document.getElementById('quality-badge').classList.add('visible');
+    document.getElementById('fs-overlay-btn').classList.add('visible');
   };
 
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit('webrtc-answer', { targetId: fromId, answer });
+  try {
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('webrtc-answer', { targetId:fromId, answer: pc.localDescription });
+  } catch(e) { console.warn('handleScreenOffer', e); }
 }
 
-// ============================================================
-// VOICE CHAT
-// ============================================================
+function screenFullscreen() {
+  const el = document.getElementById('screen-video');
+  (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+}
+
+// ================================================================
+// VOICE CHAT — FULL MESH, BIDIRECTIONAL
+// Every pair (A↔B) has one RTCPeerConnection. A creates offer, B answers.
+// The higher socket ID always offers to avoid glare.
+// BUG FIX: echo cancellation + mono audio prevent feedback when both talk.
+// ================================================================
 async function toggleVoice() {
-  if (voiceActive) {
-    stopVoice();
-  } else {
-    await startVoice();
-  }
+  voiceActive ? stopVoice() : await startVoice();
 }
 
 async function startVoice() {
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({
+    localVoiceStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: true,
+        echoCancellation: true,   // prevents feedback loop between both speakers
         noiseSuppression: true,
-        sampleRate: 48000,
-        channelCount: 2
-      },
-      video: false
+        autoGainControl:  true,
+        sampleRate:       48000,
+        channelCount:     1,      // mono: critical to prevent echo doubling
+      }, video: false
     });
-
     voiceActive = true;
-    document.getElementById('voice-btn').classList.add('active');
-    document.getElementById('voice-btn').innerHTML = '🎙️ <span class="label">Mute</span>';
-    document.getElementById('voice-bar').style.display = 'flex';
 
-    // Connect to all existing users
-    Object.keys(users).forEach(userId => {
-      if (userId !== mySocketId) {
-        createVoiceOffer(userId);
+    document.getElementById('voice-btn').classList.add('active-green');
+    document.getElementById('voice-btn').innerHTML = '🎙️ <span class="lbl">In Voice</span>';
+    document.getElementById('mute-btn').style.display = 'flex';
+    document.getElementById('voice-info').classList.add('show');
+
+    // Connect to everyone already in the room
+    // BUG FIX: only the peer with the lexicographically SMALLER socket ID sends the offer
+    // This prevents both sides from offering simultaneously (glare condition = no audio)
+    Object.keys(users).filter(id => id !== mySocketId).forEach(id => {
+      if (mySocketId < id) {
+        setTimeout(() => createVoiceOffer(id), 100);
       }
+      // The other peer will send US an offer if their ID is smaller
     });
 
     socket.emit('voice-joined', { roomId });
-    showToast('Voice chat active! 🎙️', 'info');
-  } catch(err) {
-    console.error('Voice error:', err);
-    if (err.name === 'NotAllowedError') {
-      showToast('Microphone permission denied', 'error');
-    } else {
-      showToast('Could not access microphone', 'error');
-    }
+    showToast('Voice chat active 🎙️', 'inf');
+  } catch(e) {
+    showToast(e.name === 'NotAllowedError' ? 'Mic permission denied' : 'Cannot access microphone', 'err');
   }
 }
 
 function stopVoice() {
-  if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-  }
-  voiceActive = false;
+  if (localVoiceStream) { localVoiceStream.getTracks().forEach(t => t.stop()); localVoiceStream = null; }
+  voiceActive = false; voiceMuted = false;
+  Object.keys(voicePeers).forEach(cleanupVoicePeer);
+  Object.keys(remoteAudios).forEach(id => { remoteAudios[id]?.remove(); delete remoteAudios[id]; });
 
-  Object.keys(voicePeers).forEach(id => {
-    voicePeers[id].close();
-    delete voicePeers[id];
-  });
-
-  // Remove all remote audio elements
-  document.querySelectorAll('.remote-audio').forEach(el => el.remove());
-
-  document.getElementById('voice-btn').classList.remove('active');
-  document.getElementById('voice-btn').innerHTML = '🎙️ <span class="label">Voice</span>';
-  document.getElementById('voice-bar').style.display = 'none';
+  document.getElementById('voice-btn').classList.remove('active-green');
+  document.getElementById('voice-btn').innerHTML = '🎙️ <span class="lbl">Voice</span>';
+  document.getElementById('mute-btn').style.display = 'none';
+  document.getElementById('mute-btn').classList.remove('active-red');
+  document.getElementById('mute-btn').innerHTML = '🔇 <span class="lbl">Mute</span>';
+  document.getElementById('voice-info').classList.remove('show');
 
   socket.emit('voice-left', { roomId });
-  showToast('Voice chat ended');
+  showToast('Left voice chat');
+}
+
+function toggleMute() {
+  if (!localVoiceStream) return;
+  voiceMuted = !voiceMuted;
+  localVoiceStream.getAudioTracks().forEach(t => t.enabled = !voiceMuted);
+  const btn = document.getElementById('mute-btn');
+  if (voiceMuted) {
+    btn.classList.add('active-red');
+    btn.innerHTML = '🔇 <span class="lbl">Unmute</span>';
+    showToast('Mic muted 🔇');
+  } else {
+    btn.classList.remove('active-red');
+    btn.innerHTML = '🎤 <span class="lbl">Mute</span>';
+    showToast('Mic active 🎤');
+  }
 }
 
 async function createVoiceOffer(targetId) {
-  const pc = new RTCPeerConnection(iceServers);
-  voicePeers[targetId] = pc;
+  if (voicePeers[targetId]) return;
+  const pc = new RTCPeerConnection(ICE);
+  voicePeers[targetId] = { pc };
 
-  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+  localVoiceStream?.getAudioTracks().forEach(t => pc.addTrack(t, localVoiceStream));
 
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit('voice-ice-candidate', { targetId, candidate: e.candidate });
-    }
+  pc.onicecandidate = e => { if (e.candidate) socket.emit('voice-ice', { targetId, candidate:e.candidate }); };
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === 'failed') pc.restartIce();
+    if (['disconnected','closed'].includes(pc.iceConnectionState)) cleanupVoicePeer(targetId);
   };
+  pc.ontrack = e => receiveVoiceAudio(e.track, targetId);
 
-  pc.ontrack = (event) => {
-    receiveAudio(event.streams[0], targetId);
-  };
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  socket.emit('voice-offer', { targetId, offer });
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit('voice-offer', { targetId, offer: pc.localDescription });
+  } catch(e) { console.warn('voiceOffer err', e); cleanupVoicePeer(targetId); }
 }
 
 async function handleVoiceOffer(offer, fromId) {
-  const pc = new RTCPeerConnection(iceServers);
-  voicePeers[fromId] = pc;
+  // If we already have a connection, tear it down and start fresh
+  if (voicePeers[fromId]) cleanupVoicePeer(fromId);
 
-  if (localStream) {
-    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-  }
+  const pc = new RTCPeerConnection(ICE);
+  voicePeers[fromId] = { pc };
 
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit('voice-ice-candidate', { targetId: fromId, candidate: e.candidate });
-    }
+  // Add our mic only if we're in voice
+  if (localVoiceStream) localVoiceStream.getAudioTracks().forEach(t => pc.addTrack(t, localVoiceStream));
+
+  pc.onicecandidate = e => { if (e.candidate) socket.emit('voice-ice', { targetId:fromId, candidate:e.candidate }); };
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === 'failed') pc.restartIce();
+    if (['disconnected','closed'].includes(pc.iceConnectionState)) cleanupVoicePeer(fromId);
   };
+  pc.ontrack = e => receiveVoiceAudio(e.track, fromId);
 
-  pc.ontrack = (event) => {
-    receiveAudio(event.streams[0], fromId);
-  };
-
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit('voice-answer', { targetId: fromId, answer });
+  try {
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('voice-answer', { targetId:fromId, answer: pc.localDescription });
+  } catch(e) { console.warn('voiceAnswer err', e); cleanupVoicePeer(fromId); }
 }
 
-function receiveAudio(stream, userId) {
-  let audioEl = document.getElementById(`audio-${userId}`);
-  if (!audioEl) {
-    audioEl = document.createElement('audio');
-    audioEl.id = `audio-${userId}`;
-    audioEl.className = 'remote-audio';
-    audioEl.autoplay = true;
-    audioEl.style.display = 'none';
-    document.body.appendChild(audioEl);
-  }
-  audioEl.srcObject = stream;
+function receiveVoiceAudio(track, peerId) {
+  // Rebuild audio element for this peer
+  if (remoteAudios[peerId]) remoteAudios[peerId].remove();
+  const audio = document.createElement('audio');
+  audio.autoplay = true;
+  audio.style.display = 'none';
+  // BUG FIX: pass a fresh MediaStream — do NOT attach the full remote stream
+  // because it may include video tracks that cause issues
+  audio.srcObject = new MediaStream([track]);
+  audio.volume = 1;
+  // BUG FIX: never mute the audio element — only mute localVoiceStream tracks
+  document.body.appendChild(audio);
+  remoteAudios[peerId] = audio;
+  audio.play().catch(() => {
+    // Autoplay blocked — resume on first click
+    document.addEventListener('click', () => audio.play().catch(() => {}), { once:true });
+  });
+  renderUsers(); // update mic badge
 }
 
-// ============================================================
+function cleanupVoicePeer(id) {
+  const e = voicePeers[id];
+  if (e?.pc) { try{ e.pc.close(); }catch(x){} }
+  delete voicePeers[id];
+  if (remoteAudios[id]) { remoteAudios[id].remove(); delete remoteAudios[id]; }
+}
+
+function cleanupPeer(id) {
+  if (screenPeers[id]) { try{screenPeers[id].close();}catch(e){} delete screenPeers[id]; }
+  cleanupVoicePeer(id);
+}
+
+// ================================================================
 // VIDEO LOADING
-// ============================================================
+// ================================================================
 function onSourceChange() {
-  const source = document.getElementById('source-select').value;
-  const input = document.getElementById('video-url-input');
+  const src = document.getElementById('source-select').value;
   const hints = {
-    youtube: 'Paste YouTube video URL (e.g. https://youtube.com/watch?v=...)',
-    gdrive: 'Paste Google Drive video URL (share link)',
-    url: 'Paste direct .mp4, .webm, or HLS stream URL',
-    iframe: 'Paste any website URL (Netflix, Prime Video, etc.)'
+    direct:  'Paste direct video URL (.mp4 .mkv .webm .m3u8 HLS)…',
+    youtube: 'Paste YouTube URL (https://youtube.com/watch?v=…)…',
+    gdrive:  'Paste Google Drive share link…',
+    iframe:  'Paste any website URL…',
   };
-  input.placeholder = hints[source] || 'Paste URL here...';
+  document.getElementById('video-url-input').placeholder = hints[src] || '';
+  document.getElementById('sub-drop').className = 'sub-drop' + (src === 'direct' ? ' visible' : '');
 }
 
 function loadVideo() {
   let url = document.getElementById('video-url-input').value.trim();
   const source = document.getElementById('source-select').value;
+  if (!url) { showToast('Paste a URL first!', 'err'); return; }
 
-  if (!url) { showToast('Please paste a URL first!', 'error'); return; }
-
-  let videoType = source;
-  let finalUrl = url;
+  let finalUrl = url, videoType = source;
 
   if (source === 'youtube') {
-    // Extract YouTube video ID and convert to embed URL
     const id = extractYouTubeId(url);
-    if (!id) { showToast('Invalid YouTube URL', 'error'); return; }
-    finalUrl = `https://www.youtube.com/embed/${id}?autoplay=1&enablejsapi=1&rel=0`;
-    videoType = 'youtube';
-  } else if (source === 'gdrive') {
-    // Convert Google Drive share link to embed
-    const fileId = extractGDriveId(url);
-    if (fileId) {
-      finalUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-    }
+    if (!id) { showToast('Invalid YouTube URL', 'err'); return; }
+    finalUrl = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
     videoType = 'iframe';
-  } else if (source === 'url') {
-    // Direct video file - use iframe with video tag inside
+  } else if (source === 'gdrive') {
+    const fid = extractGDriveId(url);
+    if (fid) finalUrl = `https://drive.google.com/file/d/${fid}/preview`;
+    videoType = 'iframe';
+  } else if (source === 'direct') {
     videoType = 'direct';
+  } else {
+    videoType = 'iframe';
   }
 
-  // Tell everyone to load this video
   socket.emit('video-load', { roomId, url: finalUrl, videoType });
   loadVideoFromState({ url: finalUrl, videoType, currentTime: 0, isPlaying: false });
 }
 
-function loadVideoFromState(state) {
-  const { url, videoType } = state;
+function loadVideoFromState({ url, videoType, currentTime, isPlaying }) {
   if (!url) return;
-
-  const iframe = document.getElementById('video-frame');
-  const screenVid = document.getElementById('screen-video');
-  const localVid = document.getElementById('local-video');
-  const placeholder = document.getElementById('placeholder');
-
-  // Hide screen share video
-  if (!isScreenSharing) {
-    screenVid.style.display = 'none';
-    screenVid.srcObject = null;
-    localVid.style.display = 'none';
-    localVid.srcObject = null;
-  }
+  hideAllVideoEls();
 
   if (videoType === 'direct') {
-    // For direct video files - use HTML video player
-    iframe.style.display = 'none';
-    placeholder.style.display = 'none';
-    // We'll play it in a custom video element
-    let directVid = document.getElementById('direct-video');
-    if (!directVid) {
-      directVid = document.createElement('video');
-      directVid.id = 'direct-video';
-      directVid.controls = true;
-      directVid.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;display:none;';
-      document.getElementById('video-container').appendChild(directVid);
-      setupDirectVideoSync(directVid);
-    }
-    directVid.style.display = 'block';
-    directVid.src = url;
-    directVid.play().catch(() => {});
+    document.getElementById('sub-drop').classList.add('visible');
+    showDirectPlayer(url, currentTime || 0, isPlaying);
   } else {
-    // Use iframe for YouTube, Google Drive, any website
-    let directVid = document.getElementById('direct-video');
-    if (directVid) { directVid.style.display = 'none'; directVid.src = ''; }
-
+    const iframe = document.getElementById('video-frame');
     iframe.src = url;
     iframe.style.display = 'block';
-    placeholder.style.display = 'none';
   }
-
-  currentVideoState = state;
 }
 
-function setupDirectVideoSync(videoEl) {
-  let isSyncEvent = false;
-
-  videoEl.addEventListener('play', () => {
-    if (isSyncEvent) return;
-    socket.emit('video-play', { roomId, currentTime: videoEl.currentTime });
-  });
-
-  videoEl.addEventListener('pause', () => {
-    if (isSyncEvent) return;
-    socket.emit('video-pause', { roomId, currentTime: videoEl.currentTime });
-  });
-
-  videoEl.addEventListener('seeking', () => {
-    if (isSyncEvent) return;
-    socket.emit('video-seek', { roomId, currentTime: videoEl.currentTime });
-  });
-}
-
-function syncVideoPlay(currentTime) {
-  const vid = document.getElementById('direct-video');
-  if (!vid || vid.style.display === 'none') return;
-  vid.currentTime = currentTime;
-  vid.play();
-}
-
-function syncVideoPause(currentTime) {
-  const vid = document.getElementById('direct-video');
-  if (!vid || vid.style.display === 'none') return;
-  vid.currentTime = currentTime;
-  vid.pause();
-}
-
-function syncVideoSeek(currentTime) {
-  const vid = document.getElementById('direct-video');
-  if (!vid || vid.style.display === 'none') return;
-  vid.currentTime = currentTime;
-}
-
-// ============================================================
-// URL HELPERS
-// ============================================================
-function extractYouTubeId(url) {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/shorts\/([^&\n?#]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
+function hideAllVideoEls() {
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('video-frame').style.display = 'none';
+  // Don't hide screen share videos if screen share is active
+  if (!isScreenSharing) {
+    document.getElementById('screen-video').style.display = 'none';
+    document.getElementById('local-video').style.display = 'none';
   }
-  return null;
+  document.getElementById('player-wrap').classList.remove('visible');
+  document.getElementById('fs-overlay-btn').classList.remove('visible');
 }
 
-function extractGDriveId(url) {
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  return match ? match[1] : null;
+// ================================================================
+// DIRECT PLAYER (powerful custom player)
+// ================================================================
+function showDirectPlayer(url, startTime, isPlaying) {
+  const wrap = document.getElementById('player-wrap');
+  const vid  = document.getElementById('main-video');
+  wrap.classList.add('visible');
+
+  vid.src = url;
+  vid.load();
+
+  vid.addEventListener('loadedmetadata', () => {
+    if (startTime > 0) vid.currentTime = startTime;
+    if (isPlaying) vid.play().catch(() => {});
+    updateAudioTrackSelector();
+    updateSubTrackSelector();
+    updateTimeLabel();
+    updateSeekBar();
+  }, { once: true });
+
+  // ---- SYNC EVENTS ----
+
+  // BUG FIX: 'seeked' fires ONCE when seek is COMPLETE (not 'seeking' which fires many times)
+  vid.addEventListener('seeked', () => {
+    if (isSyncLocked) return;
+    clearTimeout(seekDebounce);
+    seekDebounce = setTimeout(() => {
+      socket.emit('video-seek', { roomId, currentTime: vid.currentTime });
+    }, 350); // debounce 350ms — prevents rapid seeks from flooding server and freezing
+  });
+
+  vid.addEventListener('play', () => {
+    if (isSyncLocked) return;
+    updatePlayIcon(true);
+    socket.emit('video-play', { roomId, currentTime: vid.currentTime });
+  });
+
+  vid.addEventListener('pause', () => {
+    if (isSyncLocked) return;
+    updatePlayIcon(false);
+    socket.emit('video-pause', { roomId, currentTime: vid.currentTime });
+  });
+
+  vid.addEventListener('timeupdate', () => {
+    updateTimeLabel();
+    updateSeekBar();
+    renderSubtitles(vid.currentTime);
+  });
+
+  vid.addEventListener('progress', updateBufferBar);
+  vid.addEventListener('click',    () => playerTogglePlay());
 }
 
-// ============================================================
+// BUG FIX: sync lock with generous timeout — the lock prevents the receiver
+// from re-broadcasting the change they just received from us.
+// 800ms gives the browser time to actually apply the seek before unlock.
+function lockSync(fn) {
+  isSyncLocked = true;
+  clearTimeout(syncLockTimer);
+  fn();
+  syncLockTimer = setTimeout(() => { isSyncLocked = false; }, 900);
+}
+
+function getPlayer() {
+  const vid = document.getElementById('main-video');
+  return document.getElementById('player-wrap').classList.contains('visible') && vid.src ? vid : null;
+}
+
+// ---- Controls ----
+function playerTogglePlay() {
+  const vid = document.getElementById('main-video');
+  if (!vid.src) return;
+  vid.paused ? vid.play().catch(() => {}) : vid.pause();
+}
+function playerSkip(s) {
+  const vid = document.getElementById('main-video');
+  if (!vid.src) return;
+  vid.currentTime = Math.max(0, Math.min(vid.duration || 0, vid.currentTime + s));
+}
+function playerSetVolume(v) {
+  document.getElementById('main-video').volume = v;
+  document.getElementById('vol-icon-btn').textContent = v == 0 ? '🔇' : v < 0.5 ? '🔈' : '🔊';
+}
+function playerToggleMute() {
+  const vid = document.getElementById('main-video');
+  vid.muted = !vid.muted;
+  document.getElementById('vol-icon-btn').textContent = vid.muted ? '🔇' : '🔊';
+  document.getElementById('vol-slider').value = vid.muted ? 0 : vid.volume;
+}
+function playerSetSpeed(v) { document.getElementById('main-video').playbackRate = parseFloat(v); }
+function playerFullscreen() {
+  const wrap = document.getElementById('player-wrap');
+  (wrap.requestFullscreen || wrap.webkitRequestFullscreen).call(wrap);
+}
+function updatePlayIcon(playing) {
+  document.getElementById('play-icon-path').setAttribute('d',
+    playing ? 'M6 19h4V5H6v14zm8-14v14h4V5h-4z' : 'M8 5v14l11-7z');
+}
+
+// ---- Seek bar (mouse + touch) ----
+const seekWrapEl = document.getElementById('seek-wrap');
+let seekDragging = false;
+
+function seekFromEvent(e) {
+  const vid = document.getElementById('main-video');
+  if (!vid.duration) return;
+  const rect = seekWrapEl.getBoundingClientRect();
+  const cx   = e.touches ? e.touches[0].clientX : e.clientX;
+  const pct  = Math.max(0, Math.min(1, (cx - rect.left) / rect.width));
+  vid.currentTime = pct * vid.duration;
+}
+seekWrapEl.addEventListener('mousedown',  e => { seekDragging = true; seekFromEvent(e); });
+document.addEventListener('mousemove',    e => { if (seekDragging) seekFromEvent(e); });
+document.addEventListener('mouseup',      () => seekDragging = false);
+seekWrapEl.addEventListener('touchstart', e => { seekDragging = true; seekFromEvent(e); }, { passive:true });
+seekWrapEl.addEventListener('touchmove',  e => { if (seekDragging) seekFromEvent(e); }, { passive:true });
+seekWrapEl.addEventListener('touchend',   () => seekDragging = false);
+
+function updateSeekBar() {
+  const vid = document.getElementById('main-video');
+  if (!vid.duration) return;
+  const pct = (vid.currentTime / vid.duration) * 100;
+  document.getElementById('seek-fill').style.width = pct + '%';
+  document.getElementById('seek-thumb').style.left = pct + '%';
+}
+function updateBufferBar() {
+  const vid = document.getElementById('main-video');
+  if (!vid.duration || !vid.buffered.length) return;
+  const pct = (vid.buffered.end(vid.buffered.length - 1) / vid.duration) * 100;
+  document.getElementById('seek-buffer').style.width = pct + '%';
+}
+function updateTimeLabel() {
+  const vid = document.getElementById('main-video');
+  document.getElementById('time-label').textContent = fmt(vid.currentTime) + ' / ' + fmt(vid.duration || 0);
+}
+function fmt(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const h  = Math.floor(s / 3600);
+  const m  = Math.floor((s % 3600) / 60);
+  const ss = Math.floor(s % 60);
+  return h > 0 ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+
+// ================================================================
+// DUAL AUDIO TRACKS
+// ================================================================
+function updateAudioTrackSelector() {
+  const vid = document.getElementById('main-video');
+  const sel = document.getElementById('audio-track-select');
+  if (!vid.audioTracks || vid.audioTracks.length <= 1) { sel.style.display = 'none'; return; }
+  sel.innerHTML = '';
+  [...vid.audioTracks].forEach((t, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = t.label || t.language || `Audio ${i + 1}`;
+    sel.appendChild(opt);
+  });
+  sel.style.display = 'block';
+  showToast(`${vid.audioTracks.length} audio tracks found`, 'inf');
+}
+
+function playerSetAudioTrack(index) {
+  const vid = document.getElementById('main-video');
+  if (!vid.audioTracks) return;
+  [...vid.audioTracks].forEach((t, i) => t.enabled = (i === +index));
+}
+
+// ================================================================
+// SUBTITLES (.SRT and .VTT)
+// ================================================================
+function updateSubTrackSelector() {
+  const vid = document.getElementById('main-video');
+  const sel = document.getElementById('sub-track-select');
+  while (sel.options.length > 1) sel.remove(1);
+  [...vid.textTracks].forEach((t, i) => {
+    const opt = document.createElement('option');
+    opt.value = 'track:' + i;
+    opt.textContent = (t.label || t.language || `Sub ${i+1}`);
+    sel.appendChild(opt);
+  });
+}
+
+function playerSetSubTrack(value) {
+  const vid = document.getElementById('main-video');
+  [...vid.textTracks].forEach(t => t.mode = 'disabled');
+  document.getElementById('sub-text').textContent = '';
+  subActive = false;
+
+  if (value === '-1') return;
+  if (value.startsWith('track:')) {
+    const idx = parseInt(value.split(':')[1]);
+    if (vid.textTracks[idx]) vid.textTracks[idx].mode = 'showing';
+    return;
+  }
+  if (value === 'loaded') subActive = true;
+}
+
+function loadSubtitleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    subCues = file.name.toLowerCase().endsWith('.srt') ? parseSRT(text) : parseVTT(text);
+    subActive = true;
+    // Add option
+    const sel = document.getElementById('sub-track-select');
+    let opt = sel.querySelector('option[value="loaded"]');
+    if (!opt) { opt = document.createElement('option'); opt.value = 'loaded'; sel.appendChild(opt); }
+    opt.textContent = '📄 ' + file.name;
+    sel.value = 'loaded';
+    document.getElementById('sub-loaded-name').textContent = '✅ ' + file.name;
+    showToast('Subtitles loaded ✅', 'inf');
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseSRT(text) {
+  return text.replace(/\r\n/g,'\n').trim().split(/\n\n+/).map(b => {
+    const lines = b.split('\n');
+    if (lines.length < 3) return null;
+    const m = lines[1].match(/(\d+:\d+:\d+[,.]\d+)\s*-->\s*(\d+:\d+:\d+[,.]\d+)/);
+    if (!m) return null;
+    return { start: srtT(m[1]), end: srtT(m[2]), text: lines.slice(2).join('\n').replace(/<[^>]+>/g,'') };
+  }).filter(Boolean);
+}
+function srtT(s) {
+  const [h,mn,rest] = s.split(':'), [sec,ms] = rest.replace(',','.').split('.');
+  return +h*3600 + +mn*60 + +sec + +ms/1000;
+}
+function parseVTT(text) {
+  return text.replace(/\r\n/g,'\n').replace(/^WEBVTT[^\n]*/,'').trim().split(/\n\n+/).map(b => {
+    const lines = b.split('\n').filter(l => l.trim() && !l.startsWith('NOTE'));
+    const tl = lines.find(l => l.includes('-->'));
+    if (!tl) return null;
+    const m = tl.match(/([\d:.]+)\s*-->\s*([\d:.]+)/);
+    if (!m) return null;
+    return { start: vttT(m[1]), end: vttT(m[2]), text: lines.slice(lines.indexOf(tl)+1).join('\n').replace(/<[^>]+>/g,'') };
+  }).filter(Boolean);
+}
+function vttT(s) {
+  const p = s.split(':').map(Number);
+  return p.length === 3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1];
+}
+function renderSubtitles(t) {
+  if (!subActive || !subCues.length) return;
+  const cue = subCues.find(c => t >= c.start && t <= c.end);
+  document.getElementById('sub-text').textContent = cue ? cue.text : '';
+}
+
+// ================================================================
 // CHAT
-// ============================================================
+// ================================================================
 function sendMessage() {
   const input = document.getElementById('chat-input');
-  const text = input.value.trim();
+  const text  = input.value.trim();
   if (!text) return;
   socket.emit('chat-message', { roomId, message: text });
   input.value = '';
 }
-
-function appendMessage(msg, isOwn = false) {
-  const container = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg' + (isOwn ? ' own' : '');
-  const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  div.innerHTML = `
-    <div class="chat-msg-header">
-      <span class="chat-msg-avatar">${msg.avatar || '🦊'}</span>
-      <span class="chat-msg-name">${escHtml(msg.username)}</span>
-      <span class="chat-msg-time">${time}</span>
-    </div>
-    <div class="chat-msg-text">${escHtml(msg.text)}</div>
-  `;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+function appendMessage(msg, isOwn) {
+  const c = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'chat-msg' + (isOwn ? ' own' : '');
+  const t = new Date(msg.timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  d.innerHTML = `<div class="chat-msg-header"><span>${msg.avatar||'🦊'}</span><span class="chat-msg-name">${esc(msg.username)}</span><span class="chat-msg-time">${t}</span></div><div class="chat-msg-text">${esc(msg.text)}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
 }
-
-function addSystemMessage(text) {
-  const container = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.style.cssText = 'text-align:center;font-size:0.75rem;color:var(--muted);padding:0.3rem 0;';
-  div.textContent = text;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+function addSysMsg(text) {
+  const c = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'sys-msg'; d.textContent = text;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
-
-// ============================================================
-// REACTIONS
-// ============================================================
-function sendReaction(emoji) {
-  socket.emit('reaction', { roomId, emoji });
-  showFlyingReaction(emoji); // Show locally too
-}
-
+function sendReaction(emoji) { socket.emit('reaction', { roomId, emoji }); showFlyingReaction(emoji); }
 function showFlyingReaction(emoji) {
   const el = document.createElement('div');
-  el.className = 'reaction-popup';
-  el.textContent = emoji;
-  const x = Math.random() * (window.innerWidth - 60) + 20;
-  const y = window.innerHeight - 100;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
+  el.className = 'rx-pop'; el.textContent = emoji;
+  el.style.left = (Math.random()*(window.innerWidth-60)+20)+'px';
+  el.style.top  = (window.innerHeight-110)+'px';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2000);
 }
 
-// ============================================================
-// USERS LIST
-// ============================================================
+// ================================================================
+// USERS
+// ================================================================
 function renderUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = '';
-  Object.values(users).forEach(user => {
-    const isMe = user.id === mySocketId;
-    const div = document.createElement('div');
-    div.className = 'user-item';
-    div.innerHTML = `
-      <div class="user-avatar">${user.avatar || '🦊'}</div>
-      <div class="user-name">${escHtml(user.username)}${isMe ? ' (You)' : ''}</div>
+  const inVoice = Object.keys(remoteAudios).length + (voiceActive ? 1 : 0);
+  document.getElementById('voice-count').textContent = inVoice ? `${inVoice} in voice` : '';
+
+  Object.values(users).forEach(u => {
+    const isMe = u.id === mySocketId;
+    const hasMic = (isMe && voiceActive) || !!remoteAudios[u.id];
+    const d = document.createElement('div');
+    d.className = 'user-item';
+    d.innerHTML = `<div class="user-avatar">${u.avatar||'🦊'}</div>
+      <div class="user-name">${esc(u.username)}${isMe?' (You)':''}</div>
       <div class="user-badges">
-        ${isMe ? '<span class="badge badge-host">HOST</span>' : ''}
-      </div>
-    `;
-    list.appendChild(div);
+        ${isMe?'<span class="badge badge-host">HOST</span>':''}
+        ${hasMic?'<span class="badge badge-mic">🎙️</span>':''}
+      </div>`;
+    list.appendChild(d);
   });
 }
 
-// ============================================================
-// SIDEBAR TABS & MOBILE
-// ============================================================
+// ================================================================
+// UI HELPERS
+// ================================================================
 function switchSidebarTab(tab) {
-  document.querySelectorAll('.sidebar-tab').forEach((btn, i) => {
-    btn.classList.toggle('active', (i === 0 && tab === 'chat') || (i === 1 && tab === 'users'));
-  });
-  document.getElementById('panel-chat').classList.toggle('active', tab === 'chat');
-  document.getElementById('panel-users').classList.toggle('active', tab === 'users');
+  document.querySelectorAll('.sidebar-tab').forEach((b,i) =>
+    b.classList.toggle('active', (tab==='chat'&&i===0)||(tab==='users'&&i===1)));
+  document.getElementById('panel-chat').classList.toggle('active', tab==='chat');
+  document.getElementById('panel-users').classList.toggle('active', tab==='users');
 }
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-// ============================================================
-// COPY INVITE LINK
-// ============================================================
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function copyRoomLink() {
-  const link = window.location.href;
-  navigator.clipboard.writeText(link).then(() => {
-    showToast('Room link copied! Share it with friends 🔗');
-  }).catch(() => {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = link;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('Room link copied! 🔗');
-  });
+  navigator.clipboard.writeText(location.href)
+    .then(() => showToast('Invite link copied! 🔗'))
+    .catch(() => showToast('Copy the URL from address bar', 'inf'));
 }
-
-// ============================================================
-// LEAVE ROOM
-// ============================================================
-function leaveRoom() {
-  stopScreenShare();
-  stopVoice();
-  socket.disconnect();
-  window.location.href = '/';
-}
-
-// ============================================================
-// TOAST NOTIFICATIONS
-// ============================================================
-function showToast(msg, type = 'success') {
+function leaveRoom() { stopScreenShare(); stopVoice(); socket.disconnect(); location.href='/'; }
+function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast show ${type === 'error' ? 'error' : type === 'info' ? 'info' : ''}`;
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function extractYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([^&\n?#]+)/);
+  return m ? m[1] : null;
+}
+function extractGDriveId(url) {
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
 }
 
-// ============================================================
-// UTILITY
-// ============================================================
-function escHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// Handle back button
-window.addEventListener('beforeunload', () => {
-  stopScreenShare();
-  stopVoice();
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  if (e.code === 'Space')       { e.preventDefault(); playerTogglePlay(); }
+  if (e.code === 'ArrowLeft')   playerSkip(-10);
+  if (e.code === 'ArrowRight')  playerSkip(10);
+  if (e.code === 'KeyM')        playerToggleMute();
+  if (e.code === 'KeyF')        playerFullscreen();
 });
 
-// Auto-close sidebar when clicking outside on mobile
-document.addEventListener('click', (e) => {
-  const sidebar = document.getElementById('sidebar');
-  if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-    if (!sidebar.contains(e.target) && !e.target.closest('.mobile-sidebar-toggle')) {
-      sidebar.classList.remove('open');
-    }
+window.addEventListener('beforeunload', () => { stopScreenShare(); stopVoice(); });
+
+// Close sidebar on outside click (mobile)
+document.addEventListener('click', e => {
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth <= 768 && sb.classList.contains('open') &&
+      !sb.contains(e.target) && !e.target.closest('.mobile-only')) {
+    sb.classList.remove('open');
   }
 });
 
-// If user came directly (no username in session), redirect to home
+// If no username, prompt
 if (!sessionStorage.getItem('username')) {
   const name = prompt('Enter your name to join:');
-  if (name && name.trim()) {
-    sessionStorage.setItem('username', name.trim());
-    location.reload();
-  } else {
-    window.location.href = '/';
-  }
+  if (name?.trim()) { sessionStorage.setItem('username', name.trim()); location.reload(); }
+  else location.href = '/';
 }
+
+onSourceChange(); // initialize placeholder text
 </script>
 </body>
 </html>
