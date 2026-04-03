@@ -1,516 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WatchTogether – Watch with Friends</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --card: #1a1a25;
-      --accent: #7c3aed;
-      --accent2: #06b6d4;
-      --accent3: #f59e0b;
-      --text: #f0f0f8;
-      --muted: #6b6b8a;
-      --border: #2a2a3a;
-      --success: #10b981;
-      --danger: #ef4444;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Animated background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: 
-        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(124,58,237,0.15) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 50% at 80% 80%, rgba(6,182,212,0.1) 0%, transparent 60%),
-        radial-gradient(ellipse 30% 30% at 50% 50%, rgba(245,158,11,0.05) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 2rem;
-      position: relative;
-      z-index: 10;
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-    }
-
-    .logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .nav-badge {
-      background: var(--accent);
-      color: white;
-      font-size: 0.65rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 20px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .hero {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 5rem 1.5rem 3rem;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.4);
-      padding: 0.4rem 1rem;
-      border-radius: 100px;
-      font-size: 0.8rem;
-      color: var(--accent2);
-      margin-bottom: 1.5rem;
-      animation: pulse 2s ease infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 10vw, 7rem);
-      line-height: 1;
-      letter-spacing: 3px;
-      margin-bottom: 1rem;
-    }
-
-    .hero h1 span {
-      background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero p {
-      color: var(--muted);
-      font-size: clamp(1rem, 2.5vw, 1.2rem);
-      max-width: 550px;
-      margin: 0 auto 2.5rem;
-      line-height: 1.7;
-    }
-
-    /* Main Card */
-    .main-card {
-      position: relative;
-      z-index: 1;
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 0 1.5rem 2rem;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2rem;
-      backdrop-filter: blur(20px);
-    }
-
-    .tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      background: var(--surface);
-      padding: 0.3rem;
-      border-radius: 12px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 9px;
-      cursor: pointer;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.2s;
-      background: transparent;
-      color: var(--muted);
-    }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: white;
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 0.5rem;
-    }
-
-    input {
-      width: 100%;
-      padding: 0.9rem 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-      margin-bottom: 1.2rem;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    input::placeholder { color: var(--muted); }
-
-    .btn {
-      width: 100%;
-      padding: 1rem;
-      border: none;
-      border-radius: 12px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #5b21b6);
-      color: white;
-    }
-
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124,58,237,0.4); }
-    .btn-primary:active { transform: translateY(0); }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      margin-top: 0.75rem;
-    }
-    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-
-    .divider {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.8rem;
-      margin: 1rem 0;
-      position: relative;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: 40%;
-      height: 1px;
-      background: var(--border);
-    }
-    .divider::before { left: 0; }
-    .divider::after { right: 0; }
-
-    /* Features Grid */
-    .features {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 0 1.5rem;
-    }
-
-    .feature-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: all 0.2s;
-    }
-
-    .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-
-    .feature-icon {
-      font-size: 2rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .feature-card h3 {
-      font-size: 0.95rem;
-      margin-bottom: 0.4rem;
-      color: var(--text);
-    }
-
-    .feature-card p {
-      font-size: 0.8rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    /* Toast notification */
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--success);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 100px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: transform 0.3s ease;
-      z-index: 100;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.error { background: var(--danger); }
-
-    /* Error */
-    .error-msg {
-      color: var(--danger);
-      font-size: 0.8rem;
-      margin-top: -0.8rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 0.5rem;
-      vertical-align: middle;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-      font-size: 0.8rem;
-      position: relative;
-      z-index: 1;
-      border-top: 1px solid var(--border);
-    }
-
-    @media (max-width: 480px) {
-      nav { padding: 1rem; }
-      .hero { padding: 3rem 1rem 2rem; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WatchTogether</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0a0a0f;--sur:#13131a;--card:#1a1a25;--acc:#7c3aed;--a2:#06b6d4;--txt:#f0f0f8;--dim:#6b6b8a;--brd:#2a2a3a;--ok:#10b981;--er:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(124,58,237,.15) 0%,transparent 60%),radial-gradient(ellipse 40% 50% at 80% 80%,rgba(6,182,212,.1) 0%,transparent 60%);pointer-events:none}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;border-bottom:1px solid var(--brd);position:relative;z-index:1}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;background:linear-gradient(135deg,var(--acc),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero{position:relative;z-index:1;text-align:center;padding:4rem 1.5rem 2.5rem}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,9vw,6rem);line-height:1;letter-spacing:3px;margin-bottom:.8rem}
+.hero h1 span{background:linear-gradient(135deg,var(--acc),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--dim);font-size:clamp(.9rem,2vw,1.1rem);max-width:480px;margin:0 auto 2rem;line-height:1.7}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:1.8rem;max-width:460px;margin:0 auto;position:relative;z-index:1}
+.tabs{display:flex;gap:.4rem;margin-bottom:1.6rem;background:var(--sur);padding:.25rem;border-radius:10px}
+.tab{flex:1;padding:.65rem;border:none;border-radius:8px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;transition:all .18s;background:transparent;color:var(--dim)}
+.tab.on{background:var(--acc);color:#fff}
+.panel{display:none}.panel.on{display:block}
+label{display:block;font-size:.75rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.4rem}
+input{width:100%;padding:.8rem .9rem;background:var(--sur);border:1px solid var(--brd);border-radius:10px;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:.95rem;margin-bottom:1rem;transition:border-color .18s}
+input:focus{outline:none;border-color:var(--acc)}
+input::placeholder{color:var(--dim)}
+.primary{width:100%;padding:.9rem;border:none;border-radius:10px;background:linear-gradient(135deg,var(--acc),#5b21b6);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .18s}
+.primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,.4)}
+.primary:disabled{opacity:.6;transform:none;cursor:not-allowed}
+.err{color:var(--er);font-size:.78rem;margin-top:-.6rem;margin-bottom:.8rem;display:none}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;max-width:800px;margin:2.5rem auto;padding:0 1.5rem;position:relative;z-index:1}
+.feat{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:1.2rem;transition:all .18s}
+.feat:hover{border-color:var(--acc);transform:translateY(-2px)}
+.feat-ico{font-size:1.8rem;margin-bottom:.6rem}
+.feat h3{font-size:.88rem;margin-bottom:.3rem}
+.feat p{font-size:.75rem;color:var(--dim);line-height:1.5}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ok);color:#fff;padding:.6rem 1.3rem;border-radius:100px;font-weight:600;font-size:.85rem;transition:transform .3s;z-index:100;pointer-events:none}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.e{background:var(--er)}
+footer{text-align:center;padding:1.5rem;color:var(--dim);font-size:.78rem;margin-top:auto;position:relative;z-index:1;border-top:1px solid var(--brd)}
+@media(max-width:480px){.hero{padding:2.5rem 1rem 1.5rem}.card{margin:0 1rem}}
+</style>
 </head>
 <body>
+<nav><div class="logo">WatchTogether</div></nav>
 
-  <nav>
-    <div class="logo">WatchTogether</div>
-    <div class="nav-badge">BETA</div>
-  </nav>
+<section class="hero">
+  <h1>Watch Together<br/><span>With Friends</span></h1>
+  <p>Sync videos, share your screen in 1080p, voice chat — all in one place.</p>
+</section>
 
-  <section class="hero">
-    <div class="hero-badge">
-      <span>🎬</span> Watch movies & shows in sync
-    </div>
-    <h1>Watch with<br /><span>Friends Together</span></h1>
-    <p>Share videos from YouTube, Google Drive, any website — or share your screen in 1080p 60fps. With voice chat.</p>
-  </section>
-
-  <div class="main-card">
-    <div class="card">
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('create')">Create Room</button>
-        <button class="tab-btn" onclick="switchTab('join')">Join Room</button>
-      </div>
-
-      <!-- CREATE ROOM TAB -->
-      <div id="tab-create" class="tab-panel active">
-        <label>Your Name</label>
-        <input type="text" id="create-username" placeholder="Enter your name..." maxlength="20" />
-        <button class="btn btn-primary" onclick="createRoom()">
-          🎬 Create a Room
-        </button>
-      </div>
-
-      <!-- JOIN ROOM TAB -->
-      <div id="tab-join" class="tab-panel">
-        <label>Your Name</label>
-        <input type="text" id="join-username" placeholder="Enter your name..." maxlength="20" />
-        <label>Room Code</label>
-        <input type="text" id="room-code" placeholder="Enter room code (e.g. AB12CD34)" maxlength="8" style="text-transform:uppercase;" />
-        <div id="join-error" class="error-msg" style="display:none;"></div>
-        <button class="btn btn-primary" onclick="joinRoom()">
-          🚀 Join Room
-        </button>
-      </div>
-    </div>
+<div style="padding:0 1rem;position:relative;z-index:1">
+<div class="card">
+  <div class="tabs">
+    <button class="tab on" onclick="sw('create')">Create Room</button>
+    <button class="tab"    onclick="sw('join')">Join Room</button>
   </div>
 
-  <!-- Features -->
-  <div class="features">
-    <div class="feature-card">
-      <div class="feature-icon">🖥️</div>
-      <h3>Screen Share 1080p 60fps</h3>
-      <p>Share any tab, window, or full screen in ultra-high quality</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎙️</div>
-      <h3>Voice Chat</h3>
-      <p>Talk with your friends in real-time while watching</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">▶️</div>
-      <h3>YouTube & More</h3>
-      <p>Play videos from YouTube, Google Drive, or any URL</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔄</div>
-      <h3>Perfect Sync</h3>
-      <p>Play, pause, and seek — everyone stays in sync</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📱</div>
-      <h3>Mobile Friendly</h3>
-      <p>Works on phones, tablets, and computers</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <h3>Live Chat</h3>
-      <p>React and chat while watching together</p>
-    </div>
+  <div class="panel on" id="p-create">
+    <label>Your Name</label>
+    <input id="c-name" placeholder="Enter your name…" maxlength="20"/>
+    <button class="primary" id="c-btn" onclick="createRoom()">🎬 Create Room</button>
   </div>
 
-  <footer>
-    Made with ❤️ for movie nights &nbsp;•&nbsp; WatchTogether
-  </footer>
+  <div class="panel" id="p-join">
+    <label>Your Name</label>
+    <input id="j-name" placeholder="Enter your name…" maxlength="20"/>
+    <label>Room Code</label>
+    <input id="j-code" placeholder="8-character code…" maxlength="8" oninput="this.value=this.value.toUpperCase()"/>
+    <div class="err" id="j-err"></div>
+    <button class="primary" id="j-btn" onclick="joinRoom()">🚀 Join Room</button>
+  </div>
+</div>
+</div>
 
-  <div class="toast" id="toast"></div>
+<div class="features">
+  <div class="feat"><div class="feat-ico">🖥️</div><h3>Screen Share 1080p</h3><p>Stream any tab at 60fps via WebRTC</p></div>
+  <div class="feat"><div class="feat-ico">🎙️</div><h3>Voice Chat</h3><p>Crystal-clear real-time voice</p></div>
+  <div class="feat"><div class="feat-ico">▶️</div><h3>Video Sync</h3><p>YouTube, direct links, Google Drive</p></div>
+  <div class="feat"><div class="feat-ico">📱</div><h3>Mobile Friendly</h3><p>Works on phones and tablets</p></div>
+  <div class="feat"><div class="feat-ico">📄</div><h3>Subtitles</h3><p>SRT/VTT files + internal tracks</p></div>
+  <div class="feat"><div class="feat-ico">💬</div><h3>Live Chat</h3><p>Chat and react while watching</p></div>
+</div>
 
-  <script>
-    function switchTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach((b, i) => {
-        b.classList.toggle('active', (i === 0 && tab === 'create') || (i === 1 && tab === 'join'));
-      });
-      document.getElementById('tab-create').classList.toggle('active', tab === 'create');
-      document.getElementById('tab-join').classList.toggle('active', tab === 'join');
-    }
+<footer>WatchTogether — Made for movie nights ❤️</footer>
+<div class="toast" id="toast"></div>
 
-    function showToast(msg, isError = false) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'toast show' + (isError ? ' error' : '');
-      setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
-    async function createRoom() {
-      const username = document.getElementById('create-username').value.trim();
-      if (!username) { showToast('Please enter your name!', true); return; }
-
-      const btn = document.querySelector('#tab-create .btn-primary');
-      btn.innerHTML = '<span class="loading-spinner"></span>Creating...';
-      btn.disabled = true;
-
-      try {
-        const res = await fetch('/api/create-room', { method: 'POST' });
-        const data = await res.json();
-        // Save username to sessionStorage so room page can use it
-        sessionStorage.setItem('username', username);
-        window.location.href = `/room/${data.roomId}`;
-      } catch (e) {
-        showToast('Failed to create room. Try again.', true);
-        btn.innerHTML = '🎬 Create a Room';
-        btn.disabled = false;
-      }
-    }
-
-    async function joinRoom() {
-      const username = document.getElementById('join-username').value.trim();
-      const code = document.getElementById('room-code').value.trim().toUpperCase();
-      const errEl = document.getElementById('join-error');
-
-      if (!username) { showToast('Please enter your name!', true); return; }
-      if (!code || code.length !== 8) {
-        errEl.textContent = 'Room code must be 8 characters';
-        errEl.style.display = 'block';
-        return;
-      }
-      errEl.style.display = 'none';
-
-      const btn = document.querySelector('#tab-join .btn-primary');
-      btn.innerHTML = '<span class="loading-spinner"></span>Joining...';
-      btn.disabled = true;
-
-      try {
-        const res = await fetch(`/api/room/${code}`);
-        const data = await res.json();
-        if (!data.exists) {
-          errEl.textContent = '❌ Room not found. Check the code!';
-          errEl.style.display = 'block';
-          btn.innerHTML = '🚀 Join Room';
-          btn.disabled = false;
-          return;
-        }
-        sessionStorage.setItem('username', username);
-        window.location.href = `/room/${code}`;
-      } catch (e) {
-        showToast('Connection error. Try again.', true);
-        btn.innerHTML = '🚀 Join Room';
-        btn.disabled = false;
-      }
-    }
-
-    // Allow pressing Enter to submit
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        if (document.getElementById('tab-create').classList.contains('active')) createRoom();
-        else joinRoom();
-      }
-    });
-
-    // Auto-uppercase room code
-    document.getElementById('room-code')?.addEventListener('input', (e) => {
-      e.target.value = e.target.value.toUpperCase();
-    });
-  </script>
+<script>
+function sw(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(t==='create'&&i===0)||(t==='join'&&i===1)));
+  document.getElementById('p-create').classList.toggle('on',t==='create');
+  document.getElementById('p-join').classList.toggle('on',t==='join');
+}
+function toast(msg,e=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast on'+(e?' e':'');
+  setTimeout(()=>t.classList.remove('on'),3000);
+}
+async function createRoom(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){toast('Enter your name!',true);return;}
+  const btn=document.getElementById('c-btn');
+  btn.disabled=true; btn.textContent='Creating…';
+  try{
+    const r=await fetch('/api/room',{method:'POST'});
+    const d=await r.json();
+    sessionStorage.setItem('wt-name',name);
+    location.href='/room/'+d.id;
+  }catch(e){
+    toast('Error — try again',true);
+    btn.disabled=false; btn.textContent='🎬 Create Room';
+  }
+}
+async function joinRoom(){
+  const name=document.getElementById('j-name').value.trim();
+  const code=document.getElementById('j-code').value.trim().toUpperCase();
+  const err=document.getElementById('j-err');
+  if(!name){toast('Enter your name!',true);return;}
+  if(code.length!==8){err.textContent='Code must be 8 characters';err.style.display='block';return;}
+  err.style.display='none';
+  const btn=document.getElementById('j-btn');
+  btn.disabled=true; btn.textContent='Joining…';
+  try{
+    const r=await fetch('/api/room/'+code);
+    const d=await r.json();
+    if(!d.ok){err.textContent='Room not found!';err.style.display='block';btn.disabled=false;btn.textContent='🚀 Join Room';return;}
+    sessionStorage.setItem('wt-name',name);
+    location.href='/room/'+code;
+  }catch(e){
+    toast('Connection error',true);
+    btn.disabled=false; btn.textContent='🚀 Join Room';
+  }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  if(document.getElementById('p-create').classList.contains('on')) createRoom();
+  else joinRoom();
+});
+</script>
 </body>
 </html>
