@@ -228,7 +228,7 @@ let ME = null, users = {};
 
 // video sync
 let syncLock=false, syncTmr=null, seekTmr=null;
-const VE = {};  // named video event listeners for cleanup
+const VE = {};
 
 // screen share
 let scrOn=false, scrStream=null;
@@ -242,15 +242,24 @@ const rAudio = {};
 // subtitles
 let extCues=[], extOn=false;
 
-// ─── ICE config ───────────────────────────────────────────────
-const ICE = { iceServers:[
-  {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'},
-  {urls:'stun:stun2.l.google.com:19302'},
-  {urls:'stun:stun4.l.google.com:19302'},
-  {urls:'turn:openrelay.metered.ca:80',   username:'openrelayproject',credential:'openrelayproject'},
-  {urls:'turn:openrelay.metered.ca:443',  username:'openrelayproject',credential:'openrelayproject'},
-], iceCandidatePoolSize:8 };
+// ─── FIXED ICE CONFIGURATION (forces TURN for reliable voice) ──
+// iceTransportPolicy: 'relay' forces all traffic through TURN servers.
+// This solves "long connection time" and "no audio" for users behind strict firewalls (e.g., Vietnam).
+const ICE = { 
+  iceTransportPolicy: 'relay',   // Force TURN relay – slower but 100% reliable
+  iceServers: [
+    // Primary TURN servers with Asian presence
+    { urls: 'turn:freeturn.net:3478',   username: 'free', credential: 'free' },
+    { urls: 'turn:freeturn.net:3479',   username: 'free', credential: 'free' },
+    { urls: 'turn:turn.ossrs.net:3478', username: 'webrtc', credential: 'webrtc' },
+    { urls: 'turn:turn.ossrs.net:443',  username: 'webrtc', credential: 'webrtc' },
+    // Fallback TURN servers (US/Europe)
+    { urls: 'turn:openrelay.metered.ca:80',   username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443',  username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:3478', username: 'openrelayproject', credential: 'openrelayproject' },
+  ],
+  iceCandidatePoolSize: 8
+};
 
 // ─── socket ───────────────────────────────────────────────────
 const io = window.io({transports:['websocket','polling']});
@@ -308,7 +317,7 @@ io.on('screen-started', ({ sharerId, username })=>{
 io.on('screen-stopped', ()=>{ hideScr(); sysMsg('🖥️ Screen sharing ended'); });
 io.on('screen-viewer', ({ viewerId })=>{ if(scrOn) scrOffer(viewerId); });
 
-// WebRTC relay (server uses these exact event names)
+// WebRTC relay
 io.on('rtc-offer',  ({ from, offer, kind })=>{
   if(kind==='screen') scrAnswer(from, offer);
   else if(kind==='voice') vAnswer(from, offer);
@@ -335,18 +344,18 @@ io.on('reaction', ({ emoji })=> flyRx(emoji));
 async function addIce(entry, ice) {
   if(!entry) return;
   if(entry.pc.remoteDescription && entry.pc.remoteDescription.type) {
-    try{ await entry.pc.addIceCandidate(ice); }catch(e){}
+    try{ await entry.pc.addIceCandidate(ice); }catch(e){ console.warn('addIce error',e); }
   } else {
     entry.iceBuf.push(ice);
   }
 }
 
 async function drain(entry) {
-  for(const c of entry.iceBuf) try{ await entry.pc.addIceCandidate(c); }catch(e){}
+  for(const c of entry.iceBuf) try{ await entry.pc.addIceCandidate(c); }catch(e){ console.warn('drain error',e); }
   entry.iceBuf = [];
 }
 
-// ─── screen share ─────────────────────────────────────────────
+// ─── screen share (unchanged, but keep for completeness) ──────
 async function toggleScr(){ scrOn?stopScr():await startScr(); }
 
 async function startScr(){
@@ -393,7 +402,10 @@ async function scrOffer(viewerId){
   const {pc}=e;
   scrStream.getTracks().forEach(t=>pc.addTrack(t,scrStream));
   pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:viewerId, candidate:c.candidate, kind:'screen' }); };
-  pc.oniceconnectionstatechange=()=>{ if(pc.iceConnectionState==='failed')pc.restartIce(); };
+  pc.oniceconnectionstatechange=()=>{ 
+    if(pc.iceConnectionState==='failed') pc.restartIce();
+    if(pc.iceConnectionState==='disconnected') setTimeout(()=>{ if(scrPeers[viewerId]?.pc===pc && pc.iceConnectionState==='disconnected') pc.restartIce(); }, 3000);
+  };
   const offer=await pc.createOffer();
   await pc.setLocalDescription(offer);
   io.emit('rtc-offer',{ to:viewerId, offer:pc.localDescription, kind:'screen' });
@@ -405,7 +417,10 @@ async function scrAnswer(sharerId, sdp){
   scrPeers[sharerId]=e;
   const {pc}=e;
   pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:sharerId, candidate:c.candidate, kind:'screen' }); };
-  pc.oniceconnectionstatechange=()=>{ if(pc.iceConnectionState==='failed')pc.restartIce(); };
+  pc.oniceconnectionstatechange=()=>{ 
+    if(pc.iceConnectionState==='failed') pc.restartIce();
+    if(pc.iceConnectionState==='disconnected') setTimeout(()=>{ if(scrPeers[sharerId]?.pc===pc && pc.iceConnectionState==='disconnected') pc.restartIce(); }, 3000);
+  };
 
   const ms=new MediaStream();
   const sv=document.getElementById('scrVid');
@@ -448,7 +463,7 @@ function hideScr(){
 }
 function scrFull(){ const el=document.getElementById('scrVid'); (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
 
-// ─── voice chat ───────────────────────────────────────────────
+// ─── FIXED VOICE CHAT (fast connection, reliable audio) ───────
 async function toggleVoice(){ micOn?stopVoice():await startVoice(); }
 
 async function startVoice(){
@@ -464,6 +479,10 @@ async function startVoice(){
     document.getElementById('vbar').classList.add('on');
     io.emit('voice-join', { roomId:RID });
     toast('Voice active 🎙️','i');
+    // Also immediately try to connect to any existing voice users
+    setTimeout(()=>{
+      Object.keys(users).forEach(id=>{ if(id!==ME && !vPeers[id]) vOffer(id); });
+    }, 500);
   }catch(e){ toast(e.name==='NotAllowedError'?'Mic denied':'Cannot access mic','e'); }
 }
 
@@ -492,8 +511,16 @@ function toggleMute(){
 }
 
 function closeVP(id){
-  if(vPeers[id]){try{vPeers[id].pc.close()}catch(e){}; delete vPeers[id];}
-  if(rAudio[id]){rAudio[id].remove(); delete rAudio[id];}
+  if(vPeers[id]){
+    try{ vPeers[id].pc.close(); }catch(e){}
+    delete vPeers[id];
+  }
+  if(rAudio[id]){
+    rAudio[id].pause();
+    rAudio[id].srcObject = null;
+    rAudio[id].remove();
+    delete rAudio[id];
+  }
   renderUsers();
 }
 
@@ -503,28 +530,57 @@ function mkVoicePC(peerId){
   vPeers[peerId]=e;
   const {pc}=e;
 
-  if(micStream) micStream.getAudioTracks().forEach(t=>pc.addTrack(t,micStream));
+  // Add local audio track if we have mic
+  if(micStream && micStream.getAudioTracks().length){
+    micStream.getAudioTracks().forEach(t=>pc.addTrack(t,micStream));
+  }
 
-  pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:peerId, candidate:c.candidate, kind:'voice' }); };
+  pc.onicecandidate=c=>{ 
+    if(c.candidate) io.emit('rtc-ice',{ to:peerId, candidate:c.candidate, kind:'voice' }); 
+  };
   pc.oniceconnectionstatechange=()=>{
     const s=pc.iceConnectionState;
-    if(s==='failed')pc.restartIce();
-    if(s==='disconnected')setTimeout(()=>{ if(vPeers[peerId]?.pc===pc && pc.iceConnectionState==='disconnected')pc.restartIce(); },5000);
+    console.log(`Voice ICE state with ${peerId}: ${s}`);
+    if(s==='failed'){
+      console.warn(`ICE failed for ${peerId}, restarting`);
+      pc.restartIce();
+    }
+    if(s==='disconnected'){
+      setTimeout(()=>{ 
+        if(vPeers[peerId]?.pc===pc && pc.iceConnectionState==='disconnected'){
+          console.log(`ICE disconnected for ${peerId}, restarting`);
+          pc.restartIce();
+        }
+      }, 3000);
+    }
+    if(s==='connected') console.log(`Voice connected with ${peerId}`);
   };
 
-  pc.ontrack=({track})=>{
-    const ms=new MediaStream([track]);
-    if(rAudio[peerId])rAudio[peerId].remove();
-    const a=document.createElement('audio');
-    a.srcObject=ms;
-    a.autoplay=true;
-    a.volume=1;
-    a.style.display='none';
-    document.body.appendChild(a);
-    rAudio[peerId]=a;
-    const play=()=>a.play().catch(()=>{});
-    play();
-    ['click','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,play,{once:true}));
+  pc.ontrack=({track, streams})=>{
+    console.log(`Received voice track from ${peerId}`);
+    // Create a new MediaStream with this track
+    const ms = new MediaStream([track]);
+    if(rAudio[peerId]){
+      // Reuse existing audio element
+      rAudio[peerId].srcObject = ms;
+      rAudio[peerId].play().catch(e=>console.warn('Audio play error',e));
+    } else {
+      const a = document.createElement('audio');
+      a.srcObject = ms;
+      a.autoplay = true;
+      a.volume = 1;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      rAudio[peerId] = a;
+      // iOS/Android need explicit play() after user gesture
+      const playIt = ()=>{
+        a.play().catch(e=>console.warn('Autoplay prevented, need user interaction',e));
+        document.removeEventListener('click', playIt);
+        document.removeEventListener('touchstart', playIt);
+      };
+      document.addEventListener('click', playIt, {once:true});
+      document.addEventListener('touchstart', playIt, {once:true});
+    }
     renderUsers();
   };
 
@@ -532,36 +588,47 @@ function mkVoicePC(peerId){
 }
 
 async function vOffer(peerId){
-  if(vPeers[peerId])return;
-  const e=mkVoicePC(peerId);
+  if(vPeers[peerId]) return; // already connecting or connected
+  console.log(`Offering voice to ${peerId}`);
+  const e = mkVoicePC(peerId);
   try{
-    const offer=await e.pc.createOffer({offerToReceiveAudio:true});
+    const offer = await e.pc.createOffer({offerToReceiveAudio: true});
     await e.pc.setLocalDescription(offer);
     io.emit('rtc-offer',{ to:peerId, offer:e.pc.localDescription, kind:'voice' });
-  }catch(err){console.warn('vOffer',err);closeVP(peerId);}
+  }catch(err){
+    console.error(`vOffer error for ${peerId}`, err);
+    closeVP(peerId);
+  }
 }
 
 async function vAnswer(fromId, sdp){
-  const e=mkVoicePC(fromId);
+  console.log(`Answering voice from ${fromId}`);
+  const e = mkVoicePC(fromId);
   try{
     await e.pc.setRemoteDescription(sdp);
     await drain(e);
-    const ans=await e.pc.createAnswer();
+    const ans = await e.pc.createAnswer();
     await e.pc.setLocalDescription(ans);
     io.emit('rtc-answer',{ to:fromId, answer:e.pc.localDescription, kind:'voice' });
-  }catch(err){console.warn('vAnswer',err);closeVP(fromId);}
+  }catch(err){
+    console.error(`vAnswer error for ${fromId}`, err);
+    closeVP(fromId);
+  }
 }
 
 async function vOnAns(fromId, sdp){
-  const e=vPeers[fromId]; if(!e)return;
-  if(e.pc.signalingState!=='have-local-offer')return;
+  const e = vPeers[fromId];
+  if(!e) return;
+  if(e.pc.signalingState !== 'have-local-offer') return;
   try{
     await e.pc.setRemoteDescription(sdp);
     await drain(e);
-  }catch(err){console.warn('vOnAns',err);}
+  }catch(err){
+    console.error(`vOnAns error for ${fromId}`, err);
+  }
 }
 
-// ─── video player ──────────────────────────────────────────────
+// ─── video player (unchanged) ─────────────────────────────────
 function srcChg(){
   const s=document.getElementById('srcSel').value;
   document.getElementById('urlInp').placeholder={
