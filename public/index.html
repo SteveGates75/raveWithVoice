@@ -103,10 +103,10 @@ async function createRoom(){
   const btn=document.getElementById('c-btn');
   btn.disabled=true; btn.textContent='Creating…';
   try{
-    const r=await fetch('/api/room',{method:'POST'});
+    const r=await fetch('/api/create-room',{method:'POST'});
     const d=await r.json();
     sessionStorage.setItem('wt-name',name);
-    location.href='/room/'+d.id;
+    location.href='/room/'+d.roomId;
   }catch(e){
     toast('Error — try again',true);
     btn.disabled=false; btn.textContent='🎬 Create Room';
@@ -124,7 +124,7 @@ async function joinRoom(){
   try{
     const r=await fetch('/api/room/'+code);
     const d=await r.json();
-    if(!d.ok){err.textContent='Room not found!';err.style.display='block';btn.disabled=false;btn.textContent='🚀 Join Room';return;}
+    if(!d.exists){err.textContent='Room not found!';err.style.display='block';btn.disabled=false;btn.textContent='🚀 Join Room';return;}
     sessionStorage.setItem('wt-name',name);
     location.href='/room/'+code;
   }catch(e){

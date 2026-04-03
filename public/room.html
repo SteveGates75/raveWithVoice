@@ -9,7 +9,6 @@
 :root{--bg:#0a0a0f;--sur:#13131a;--card:#1a1a25;--acc:#7c3aed;--a2:#06b6d4;--a3:#f59e0b;--txt:#f0f0f8;--dim:#6b6b8a;--brd:#2a2a3a;--ok:#10b981;--er:#ef4444;--sw:310px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-/* topbar */
 .bar{display:flex;align-items:center;gap:.5rem;padding:.48rem .85rem;background:var(--sur);border-bottom:1px solid var(--brd);flex-shrink:0;flex-wrap:wrap}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;background:linear-gradient(135deg,var(--acc),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
 .pill{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);border-radius:7px;padding:.22rem .58rem;font-size:.72rem;font-weight:700;color:var(--a2);cursor:pointer;white-space:nowrap}
@@ -20,15 +19,12 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
 .btn.grn{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn.red{background:var(--er);border-color:var(--er);color:#fff}
 .mob{display:none}
-/* layout */
 .wrap{display:flex;flex:1;overflow:hidden}
 .vsec{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#000;min-width:0}
 .vbox{flex:1;position:relative;background:#000;overflow:hidden}
-/* placeholder */
 .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;background:radial-gradient(ellipse at center,#1a1a2e,#000);z-index:2}
 .ph h2{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--dim)}
 .ph p{color:var(--dim);font-size:.78rem;text-align:center;padding:0 1.5rem;max-width:300px;line-height:1.6}
-/* video elements — all absolute, shown/hidden via display */
 #ifr,#scrVid,#prvVid,#plyr{position:absolute;inset:0;display:none}
 #ifr{border:none;z-index:3}
 #scrVid{width:100%;height:100%;object-fit:contain;background:#000;z-index:3}
@@ -36,10 +32,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
 #plyr{flex-direction:column;background:#000;z-index:3}
 #plyr.on{display:flex}
 #vid{width:100%;flex:1;background:#000;object-fit:contain;cursor:pointer;min-height:0;display:block}
-/* subtitle */
 .sub{position:absolute;bottom:74px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:10;max-width:88%}
 .sub span{display:inline-block;background:rgba(0,0,0,.85);color:#fff;font-size:clamp(.82rem,2.1vw,1.05rem);padding:.18rem .62rem;border-radius:5px;line-height:1.5;white-space:pre-wrap}
-/* controls */
 .ctrl{flex-shrink:0;background:linear-gradient(0deg,rgba(0,0,0,.97),rgba(0,0,0,.4));padding:.38rem .62rem .32rem;display:flex;flex-direction:column;gap:.32rem;user-select:none}
 .srow{display:flex;align-items:center;gap:.38rem}
 .tlbl{font-size:.65rem;color:#bbb;white-space:nowrap;min-width:88px}
@@ -59,26 +53,22 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
 .csel{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:5px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.65rem;padding:.14rem .28rem;cursor:pointer;max-width:100px}
 .csel option{background:#1a1a25;color:#fff}
 .sp{flex:1}
-/* overlays */
 .fsbtn{position:absolute;top:.58rem;right:.58rem;z-index:20;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;font-size:.72rem;padding:.26rem .58rem;cursor:pointer;display:none;font-family:'Space Grotesk',sans-serif;font-weight:600;align-items:center;gap:.22rem}
 .fsbtn.on{display:flex}
 .scrbar{display:none;position:absolute;bottom:.65rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);border:1px solid var(--brd);border-radius:9px;padding:.3rem .75rem;gap:.55rem;align-items:center;font-size:.75rem;z-index:20;white-space:nowrap}
 .scrbar.on{display:flex}
 .qbdg{position:absolute;top:.58rem;left:.58rem;z-index:20;background:rgba(0,0,0,.7);border:1px solid var(--ok);color:var(--ok);padding:.12rem .38rem;border-radius:5px;font-size:.62rem;font-weight:700;display:none}
 .qbdg.on{display:block}
-/* url bar */
 .ubar{display:flex;gap:.34rem;padding:.44rem .62rem;background:var(--sur);border-top:1px solid var(--brd);flex-wrap:wrap;flex-shrink:0}
 .usel{padding:.34rem .48rem;background:var(--card);border:1px solid var(--brd);border-radius:7px;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:.72rem;cursor:pointer}
 .uinp{flex:1;padding:.34rem .58rem;background:var(--card);border:1px solid var(--brd);border-radius:7px;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:.76rem;min-width:0}
 .uinp:focus{outline:none;border-color:var(--acc)}
 .ulbtn{padding:.34rem .75rem;background:var(--acc);border:none;border-radius:7px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .ulbtn:hover{background:#6d28d9}
-/* subtitle row */
 .subrow{display:none;align-items:center;gap:.4rem;padding:.26rem .62rem;background:rgba(6,182,212,.06);border-top:1px solid rgba(6,182,212,.14);font-size:.72rem;color:var(--a2);flex-shrink:0;flex-wrap:wrap}
 .subrow.on{display:flex}
 .sfbtn{background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.32);border-radius:6px;color:var(--a2);font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:600;padding:.18rem .48rem;cursor:pointer}
 #subFile{display:none}
-/* sidebar */
 .side{width:var(--sw);display:flex;flex-direction:column;background:var(--sur);border-left:1px solid var(--brd);flex-shrink:0}
 .stabs{display:flex;border-bottom:1px solid var(--brd)}
 .stab{flex:1;padding:.58rem;border:none;background:transparent;color:var(--dim);font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
@@ -98,7 +88,6 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
 .vbar.on{display:flex}
 .vdot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:vd 1.1s ease infinite}
 @keyframes vd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
-/* chat */
 .cmsg{flex:1;overflow-y:auto;padding:.54rem;display:flex;flex-direction:column;gap:.38rem}
 .msg{background:var(--card);border:1px solid var(--brd);border-radius:10px 10px 10px 3px;padding:.38rem .54rem}
 .msg.me{background:rgba(124,58,237,.11);border-color:rgba(124,58,237,.28);border-radius:10px 10px 3px 10px}
@@ -115,7 +104,6 @@ body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-seri
 .cinp:focus{outline:none;border-color:var(--acc)}
 .csnd{padding:.4rem .68rem;background:var(--acc);border:none;border-radius:9px;color:#fff;cursor:pointer;font-size:.88rem}
 .csnd:hover{background:#6d28d9}
-/* toast */
 .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ok);color:#fff;padding:.48rem 1rem;border-radius:100px;font-weight:600;font-size:.76rem;transition:transform .22s ease;z-index:9999;white-space:nowrap;pointer-events:none}
 .toast.on{transform:translateX(-50%) translateY(0)}
 .toast.e{background:var(--er)}.toast.i{background:var(--acc)}
@@ -244,27 +232,22 @@ const VE = {};  // named video event listeners for cleanup
 
 // screen share
 let scrOn=false, scrStream=null;
-// scrPeers[peerId] = { pc, iceBuf[] }
 const scrPeers = {};
 
 // voice
 let micOn=false, micMuted=false, micStream=null;
-// vPeers[peerId] = { pc, iceBuf[] }
 const vPeers = {};
-// rAudio[peerId] = <audio>
 const rAudio = {};
 
 // subtitles
 let extCues=[], extOn=false;
 
 // ─── ICE config ───────────────────────────────────────────────
-// Multiple STUN + TURN relay so it works on all networks
 const ICE = { iceServers:[
   {urls:'stun:stun.l.google.com:19302'},
   {urls:'stun:stun1.l.google.com:19302'},
   {urls:'stun:stun2.l.google.com:19302'},
   {urls:'stun:stun4.l.google.com:19302'},
-  // Free TURN relay — works even on mobile/corporate NAT
   {urls:'turn:openrelay.metered.ca:80',   username:'openrelayproject',credential:'openrelayproject'},
   {urls:'turn:openrelay.metered.ca:443',  username:'openrelayproject',credential:'openrelayproject'},
 ], iceCandidatePoolSize:8 };
@@ -275,50 +258,80 @@ const io = window.io({transports:['websocket','polling']});
 io.on('connect', ()=>{
   ME = io.id;
   document.getElementById('codePill').textContent = '🔗 '+RID;
-  io.emit('join', {roomId:RID, name:NAME});
+  io.emit('join-room', { roomId: RID, username: NAME });
 });
 
-io.on('init', ({users:u, video:v, msgs, sharer, voices})=>{
-  users={}; u.forEach(x=>users[x.id]=x); renderUsers();
-  msgs.forEach(m=>addMsg(m, m.uid===ME));
-  if(v?.url) loadState(v);
-  // Request screen if someone is sharing
-  if(sharer && sharer!==ME)
-    setTimeout(()=>io.emit('scr-want',{from:sharer}), 800);
+io.on('room-state', ({ users: u, videoState, messages, screenSharer, voiceUsers }) => {
+  users = {};
+  u.forEach(x=>users[x.id]=x);
+  renderUsers();
+  messages.forEach(m=>addMsg(m, m.userId===ME));
+  if(videoState?.url) loadState(videoState);
+  if(screenSharer && screenSharer!==ME)
+    setTimeout(()=>io.emit('screen-request',{ roomId:RID, sharerId:screenSharer }), 800);
+  if(voiceUsers?.length) voiceUsers.forEach(id=>{ if(id!==ME) setTimeout(()=>vOffer(id),150); });
 });
 
-io.on('peer-join', u=>{ users[u.id]=u; renderUsers(); toast(u.name+' joined 👋','i'); sysMsg(u.av+' '+u.name+' joined'); if(scrOn)setTimeout(()=>scrOffer(u.id),300); if(micOn)setTimeout(()=>vOffer(u.id),400); });
-io.on('peer-left', ({id})=>{ if(users[id])sysMsg(users[id].av+' '+users[id].name+' left'); delete users[id]; closeSP(id); closeVP(id); renderUsers(); });
-io.on('users', list=>{ users={}; list.forEach(u=>users[u.id]=u); renderUsers(); });
+io.on('user-joined', u=>{ 
+  users[u.id]=u; renderUsers(); 
+  toast(u.username+' joined 👋','i');
+  sysMsg(u.avatar+' '+u.username+' joined');
+  if(scrOn) setTimeout(()=>scrOffer(u.id),300);
+  if(micOn) setTimeout(()=>vOffer(u.id),400);
+});
 
-// video sync
-io.on('v-load',  ({url,type})=>loadState({url,type,time:0,playing:false}));
-io.on('v-play',  ({time})=>{ const v=getV(); if(!v)return; lock(()=>{v.currentTime=time;v.play().catch(()=>{})}); pIcon(true);  });
-io.on('v-pause', ({time})=>{ const v=getV(); if(!v)return; lock(()=>{v.currentTime=time;v.pause()}); pIcon(false); });
-io.on('v-seek',  ({time})=>{ const v=getV(); if(!v)return; lock(()=>{v.currentTime=time}); });
+io.on('user-left', ({ id })=>{
+  if(users[id]) sysMsg(users[id].avatar+' '+users[id].username+' left');
+  delete users[id];
+  closeSP(id);
+  closeVP(id);
+  renderUsers();
+});
 
-// screen share
-io.on('scr-started',({from,name})=>{ toast(name+' sharing screen 🖥️','i'); sysMsg('🖥️ '+name+' started sharing'); io.emit('scr-want',{from}); });
-io.on('scr-stopped',()=>{ hideScr(); sysMsg('🖥️ Screen sharing ended'); });
-io.on('scr-viewer', ({viewer})=>{ if(scrOn)scrOffer(viewer); });
+io.on('users-update', list=>{
+  users={}; list.forEach(u=>users[u.id]=u);
+  renderUsers();
+});
 
-// WebRTC — the server relays all of these
-io.on('rtc-offer',  ({from,sdp,ch})=>{ if(ch==='scr')scrAnswer(from,sdp); else vAnswer(from,sdp); });
-io.on('rtc-answer', ({from,sdp,ch})=>{ if(ch==='scr')scrOnAns(from,sdp); else vOnAns(from,sdp);  });
-io.on('rtc-ice',    ({from,ice,ch})=>{ if(ch==='scr')addIce(scrPeers[from],ice); else addIce(vPeers[from],ice); });
+// Video sync
+io.on('video-load', ({ url, videoType })=> loadState({ url, type:videoType, time:0, playing:false }));
+io.on('video-play', ({ currentTime })=>{ const v=getV(); if(v){ lock(()=>{ v.currentTime=currentTime; v.play().catch(()=>{}); }); pIcon(true); } });
+io.on('video-pause', ({ currentTime })=>{ const v=getV(); if(v){ lock(()=>{ v.currentTime=currentTime; v.pause(); }); pIcon(false); } });
+io.on('video-seek', ({ currentTime })=>{ const v=getV(); if(v){ lock(()=>{ v.currentTime=currentTime; }); } });
 
-// voice presence
-io.on('voice-peers', ({peers})=>peers.forEach(id=>setTimeout(()=>vOffer(id),150)));
-io.on('mic-on',  ({id})=>{ if(id!==ME && !vPeers[id] && micOn) vOffer(id); });
-io.on('mic-off', ({id})=>closeVP(id));
+// Screen share
+io.on('screen-started', ({ sharerId, username })=>{
+  toast(username+' sharing screen 🖥️','i');
+  sysMsg('🖥️ '+username+' started sharing');
+  io.emit('screen-request',{ roomId:RID, sharerId });
+});
+io.on('screen-stopped', ()=>{ hideScr(); sysMsg('🖥️ Screen sharing ended'); });
+io.on('screen-viewer', ({ viewerId })=>{ if(scrOn) scrOffer(viewerId); });
 
-// chat
-io.on('msg', m=>{ addMsg(m,m.uid===ME); scrollMsgs(); });
-io.on('rx',  ({emoji})=>flyRx(emoji));
+// WebRTC relay (server uses these exact event names)
+io.on('rtc-offer',  ({ from, offer, kind })=>{
+  if(kind==='screen') scrAnswer(from, offer);
+  else if(kind==='voice') vAnswer(from, offer);
+});
+io.on('rtc-answer', ({ from, answer, kind })=>{
+  if(kind==='screen') scrOnAns(from, answer);
+  else if(kind==='voice') vOnAns(from, answer);
+});
+io.on('rtc-ice', ({ from, candidate, kind })=>{
+  if(kind==='screen') addIce(scrPeers[from], candidate);
+  else if(kind==='voice') addIce(vPeers[from], candidate);
+});
+
+// Voice presence
+io.on('voice-peers', ({ peers })=> peers.forEach(id=>setTimeout(()=>vOffer(id),150)));
+io.on('voice-new', ({ userId })=>{ if(userId!==ME && micOn) vOffer(userId); });
+io.on('voice-gone', ({ userId })=> closeVP(userId));
+
+// Chat & reactions
+io.on('chat', msg=>{ addMsg(msg, msg.userId===ME); scrollMsgs(); });
+io.on('reaction', ({ emoji })=> flyRx(emoji));
 
 // ─── ICE trickle helper ───────────────────────────────────────
-// Buffer candidates until setRemoteDescription is done.
-// This is the #1 fix for black screen / no audio on WebRTC.
 async function addIce(entry, ice) {
   if(!entry) return;
   if(entry.pc.remoteDescription && entry.pc.remoteDescription.type) {
@@ -350,7 +363,7 @@ async function startScr(){
     document.getElementById('qbdg').classList.add('on');
     document.getElementById('sBtn').classList.add('on');
     document.getElementById('sBtn').innerHTML='⏹ <span class="lbl">Sharing</span>';
-    io.emit('scr-start');
+    io.emit('screen-start', { roomId:RID });
     Object.keys(users).filter(x=>x!==ME).forEach(id=>setTimeout(()=>scrOffer(id),200));
     scrStream.getVideoTracks()[0].addEventListener('ended', stopScr);
     toast('Sharing started 🖥️','i');
@@ -367,7 +380,7 @@ function stopScr(){
   document.getElementById('sBtn').classList.remove('on');
   document.getElementById('sBtn').innerHTML='🖥️ <span class="lbl">Share</span>';
   document.getElementById('ph').style.display='flex';
-  io.emit('scr-stop');
+  io.emit('screen-stop', { roomId:RID });
   toast('Sharing stopped');
 }
 
@@ -379,11 +392,11 @@ async function scrOffer(viewerId){
   scrPeers[viewerId]=e;
   const {pc}=e;
   scrStream.getTracks().forEach(t=>pc.addTrack(t,scrStream));
-  pc.onicecandidate=c=>{ if(c.candidate)io.emit('rtc-ice',{to:viewerId,ice:c.candidate,ch:'scr'}); };
+  pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:viewerId, candidate:c.candidate, kind:'screen' }); };
   pc.oniceconnectionstatechange=()=>{ if(pc.iceConnectionState==='failed')pc.restartIce(); };
   const offer=await pc.createOffer();
   await pc.setLocalDescription(offer);
-  io.emit('rtc-offer',{to:viewerId,sdp:pc.localDescription,ch:'scr'});
+  io.emit('rtc-offer',{ to:viewerId, offer:pc.localDescription, kind:'screen' });
 }
 
 async function scrAnswer(sharerId, sdp){
@@ -391,16 +404,14 @@ async function scrAnswer(sharerId, sdp){
   const e={pc:new RTCPeerConnection(ICE),iceBuf:[]};
   scrPeers[sharerId]=e;
   const {pc}=e;
-  pc.onicecandidate=c=>{ if(c.candidate)io.emit('rtc-ice',{to:sharerId,ice:c.candidate,ch:'scr'}); };
+  pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:sharerId, candidate:c.candidate, kind:'screen' }); };
   pc.oniceconnectionstatechange=()=>{ if(pc.iceConnectionState==='failed')pc.restartIce(); };
 
-  // Build MediaStream before any tracks arrive — assign to video element now
   const ms=new MediaStream();
   const sv=document.getElementById('scrVid');
 
   pc.ontrack=({track})=>{
     ms.addTrack(track);
-    // Only assign srcObject once
     if(sv.srcObject!==ms) sv.srcObject=ms;
     if(sv.style.display!=='block'){
       sv.style.display='block';
@@ -415,10 +426,10 @@ async function scrAnswer(sharerId, sdp){
   };
 
   await pc.setRemoteDescription(sdp);
-  await drain(e);  // ← flush buffered ICE now that remote desc is set
+  await drain(e);
   const ans=await pc.createAnswer();
   await pc.setLocalDescription(ans);
-  io.emit('rtc-answer',{to:sharerId,sdp:pc.localDescription,ch:'scr'});
+  io.emit('rtc-answer',{ to:sharerId, answer:pc.localDescription, kind:'screen' });
 }
 
 async function scrOnAns(viewerId, sdp){
@@ -443,13 +454,7 @@ async function toggleVoice(){ micOn?stopVoice():await startVoice(); }
 async function startVoice(){
   try{
     micStream=await navigator.mediaDevices.getUserMedia({
-      audio:{
-        echoCancellation:true,  // AEC — removes your own voice from loop
-        noiseSuppression:true,  // NS  — removes background noise
-        autoGainControl:true,   // AGC — keeps your volume consistent
-        sampleRate:48000,
-        channelCount:1,         // mono = less data, less echo risk
-      },
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true, sampleRate:48000, channelCount:1 },
       video:false
     });
     micOn=true;
@@ -457,8 +462,7 @@ async function startVoice(){
     document.getElementById('vBtn').innerHTML='🎙️ <span class="lbl">In Voice</span>';
     document.getElementById('mBtn').style.display='flex';
     document.getElementById('vbar').classList.add('on');
-    io.emit('mic-on');
-    // server responds with voice-peers (who is already in voice)
+    io.emit('voice-join', { roomId:RID });
     toast('Voice active 🎙️','i');
   }catch(e){ toast(e.name==='NotAllowedError'?'Mic denied':'Cannot access mic','e'); }
 }
@@ -473,7 +477,7 @@ function stopVoice(){
   document.getElementById('mBtn').classList.remove('red');
   document.getElementById('mBtn').innerHTML='🔇 <span class="lbl">Mute</span>';
   document.getElementById('vbar').classList.remove('on');
-  io.emit('mic-off');
+  io.emit('voice-leave', { roomId:RID });
   toast('Left voice');
 }
 
@@ -499,10 +503,9 @@ function mkVoicePC(peerId){
   vPeers[peerId]=e;
   const {pc}=e;
 
-  // Add mic track BEFORE offer so SDP has audio
   if(micStream) micStream.getAudioTracks().forEach(t=>pc.addTrack(t,micStream));
 
-  pc.onicecandidate=c=>{ if(c.candidate)io.emit('rtc-ice',{to:peerId,ice:c.candidate,ch:'voice'}); };
+  pc.onicecandidate=c=>{ if(c.candidate) io.emit('rtc-ice',{ to:peerId, candidate:c.candidate, kind:'voice' }); };
   pc.oniceconnectionstatechange=()=>{
     const s=pc.iceConnectionState;
     if(s==='failed')pc.restartIce();
@@ -510,18 +513,15 @@ function mkVoicePC(peerId){
   };
 
   pc.ontrack=({track})=>{
-    // Create a fresh MediaStream with just this one track
     const ms=new MediaStream([track]);
     if(rAudio[peerId])rAudio[peerId].remove();
     const a=document.createElement('audio');
     a.srcObject=ms;
     a.autoplay=true;
     a.volume=1;
-    // NEVER set a.muted — that silences everything
     a.style.display='none';
     document.body.appendChild(a);
     rAudio[peerId]=a;
-    // Resume on user gesture if browser blocked autoplay
     const play=()=>a.play().catch(()=>{});
     play();
     ['click','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,play,{once:true}));
@@ -532,12 +532,12 @@ function mkVoicePC(peerId){
 }
 
 async function vOffer(peerId){
-  if(vPeers[peerId])return; // already connected
+  if(vPeers[peerId])return;
   const e=mkVoicePC(peerId);
   try{
     const offer=await e.pc.createOffer({offerToReceiveAudio:true});
     await e.pc.setLocalDescription(offer);
-    io.emit('rtc-offer',{to:peerId,sdp:e.pc.localDescription,ch:'voice'});
+    io.emit('rtc-offer',{ to:peerId, offer:e.pc.localDescription, kind:'voice' });
   }catch(err){console.warn('vOffer',err);closeVP(peerId);}
 }
 
@@ -545,10 +545,10 @@ async function vAnswer(fromId, sdp){
   const e=mkVoicePC(fromId);
   try{
     await e.pc.setRemoteDescription(sdp);
-    await drain(e); // flush buffered ICE
+    await drain(e);
     const ans=await e.pc.createAnswer();
     await e.pc.setLocalDescription(ans);
-    io.emit('rtc-answer',{to:fromId,sdp:e.pc.localDescription,ch:'voice'});
+    io.emit('rtc-answer',{ to:fromId, answer:e.pc.localDescription, kind:'voice' });
   }catch(err){console.warn('vAnswer',err);closeVP(fromId);}
 }
 
@@ -583,8 +583,8 @@ function loadVid(){
     const id=gdId(url); if(id)final=`https://drive.google.com/file/d/${id}/preview`; type='iframe';
   } else if(src==='iframe'){ type='iframe'; }
 
-  io.emit('v-load',{url:final,type});
-  loadState({url:final,type,time:0,playing:false});
+  io.emit('video-load', { roomId:RID, url:final, videoType:type });
+  loadState({ url:final, type, time:0, playing:false });
 }
 
 function loadState({url,type,time,playing}){
@@ -608,10 +608,8 @@ function hideAll(){
 
 function startPlayer(url, t0, play0){
   const vid=document.getElementById('vid');
-  // Remove ALL old listeners first (prevents stacking = freeze bug)
   Object.entries(VE).forEach(([ev,fn])=>vid.removeEventListener(ev,fn));
   for(const k in VE)delete VE[k];
-  // Reset subs
   extCues=[];extOn=false;
   document.getElementById('subTxt').textContent='';
   document.getElementById('subSel').innerHTML='<option value="off">Subs: Off</option>';
@@ -630,9 +628,9 @@ function startPlayer(url, t0, play0){
   const fns={
     timeupdate:()=>{updTime();updSeek();if(extOn)renderSub(vid.currentTime);},
     progress:  ()=>updBuf(),
-    play:      ()=>{if(syncLock)return;pIcon(true); io.emit('v-play', {time:vid.currentTime});},
-    pause:     ()=>{if(syncLock)return;pIcon(false);io.emit('v-pause',{time:vid.currentTime});},
-    seeked:    ()=>{if(syncLock)return;clearTimeout(seekTmr);seekTmr=setTimeout(()=>io.emit('v-seek',{time:vid.currentTime}),350);},
+    play:      ()=>{if(syncLock)return;pIcon(true); io.emit('video-play', { roomId:RID, currentTime:vid.currentTime });},
+    pause:     ()=>{if(syncLock)return;pIcon(false); io.emit('video-pause',{ roomId:RID, currentTime:vid.currentTime });},
+    seeked:    ()=>{if(syncLock)return;clearTimeout(seekTmr);seekTmr=setTimeout(()=>io.emit('video-seek',{ roomId:RID, currentTime:vid.currentTime }),350);},
     click:     ()=>pPlay(),
   };
   Object.entries(fns).forEach(([ev,fn])=>{VE[ev]=fn;vid.addEventListener(ev,fn);});
@@ -713,11 +711,11 @@ function pFull(){const w=document.getElementById('plyr');(w.requestFullscreen||w
 function pIcon(pl){document.getElementById('pip').setAttribute('d',pl?'M6 19h4V5H6v14zm8-14v14h4V5h-4z':'M8 5v14l11-7z');}
 
 // chat
-function sendChat(){const i=document.getElementById('cinp'),t=i.value.trim();if(!t)return;io.emit('msg',{text:t});i.value='';}
-function addMsg(m,mine){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg'+(mine?' me':'');const ts=new Date(m.t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});d.innerHTML=`<div class="mh"><span>${m.av||'🦊'}</span><span class="mn">${esc(m.name)}</span><span class="mt">${ts}</span></div><div class="mb">${esc(m.text)}</div>`;c.appendChild(d);scrollMsgs();}
+function sendChat(){const i=document.getElementById('cinp'),t=i.value.trim();if(!t)return;io.emit('chat',{ roomId:RID, text:t });i.value='';}
+function addMsg(m,mine){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg'+(mine?' me':'');const ts=new Date(m.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});d.innerHTML=`<div class="mh"><span>${m.avatar||'🦊'}</span><span class="mn">${esc(m.username)}</span><span class="mt">${ts}</span></div><div class="mb">${esc(m.text)}</div>`;c.appendChild(d);scrollMsgs();}
 function sysMsg(t){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='sys';d.textContent=t;c.appendChild(d);scrollMsgs();}
 function scrollMsgs(){const c=document.getElementById('msgs');c.scrollTop=c.scrollHeight;}
-function doRx(e){io.emit('rx',{emoji:e});flyRx(e);}
+function doRx(e){io.emit('reaction',{ roomId:RID, emoji:e });flyRx(e);}
 function flyRx(e){const el=document.createElement('div');el.className='rxp';el.textContent=e;el.style.left=(Math.random()*(window.innerWidth-60)+20)+'px';el.style.top=(window.innerHeight-110)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),2200);}
 
 // users
@@ -728,7 +726,7 @@ function renderUsers(){
   Object.values(users).forEach(u=>{
     const me=u.id===ME,mic=(me&&micOn)||!!rAudio[u.id],scr=me&&scrOn;
     const d=document.createElement('div');d.className='ui';
-    d.innerHTML=`<div class="uav">${u.av||'🦊'}</div><div class="unm">${esc(u.name)}${me?' (You)':''}</div><div class="ubdg">${me?'<span class="bdg bh">HOST</span>':''}${mic?'<span class="bdg bm">🎙️</span>':''}${scr?'<span class="bdg bs">🖥️</span>':''}</div>`;
+    d.innerHTML=`<div class="uav">${u.avatar||'🦊'}</div><div class="unm">${esc(u.username)}${me?' (You)':''}</div><div class="ubdg">${me?'<span class="bdg bh">HOST</span>':''}${mic?'<span class="bdg bm">🎙️</span>':''}${scr?'<span class="bdg bs">🖥️</span>':''}</div>`;
     ul.appendChild(d);
   });
 }
@@ -753,7 +751,6 @@ document.addEventListener('keydown',e=>{
 window.addEventListener('beforeunload',()=>{stopScr();stopVoice();});
 document.addEventListener('click',e=>{const sb=document.getElementById('side');if(window.innerWidth<=768&&sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.mob'))sb.classList.remove('open');});
 
-// no username → prompt
 if(!sessionStorage.getItem('wt-name')){
   const n=prompt('Enter your name:');
   if(n?.trim()){sessionStorage.setItem('wt-name',n.trim());location.reload();}
