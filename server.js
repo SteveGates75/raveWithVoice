@@ -36,7 +36,6 @@ io.on('connection', socket => {
     room.users[socket.id] = user;
     socket.join(rid);
 
-    // Send full room state to the joining user
     socket.emit('init', {
       me: socket.id,
       users: Object.values(room.users),
@@ -49,13 +48,11 @@ io.on('connection', socket => {
     io.to(rid).emit('users', Object.values(room.users));
   });
 
-  // ── Video sync ──────────────────────────────────────────────
   socket.on('v-load',  d => { const r = rooms[rid]; if (!r) return; r.video = { url: d.url, type: d.vtype, playing: false, time: 0 }; io.to(rid).emit('v-load', d); });
   socket.on('v-play',  d => { const r = rooms[rid]; if (!r) return; r.video.playing = true;  r.video.time = d.time; socket.to(rid).emit('v-play',  d); });
   socket.on('v-pause', d => { const r = rooms[rid]; if (!r) return; r.video.playing = false; r.video.time = d.time; socket.to(rid).emit('v-pause', d); });
   socket.on('v-seek',  d => { const r = rooms[rid]; if (!r) return; r.video.time = d.time;                         socket.to(rid).emit('v-seek',  d); });
 
-  // ── Screen share ────────────────────────────────────────────
   socket.on('scr-start', () => {
     const r = rooms[rid]; if (!r) return;
     r.sharer = socket.id;
@@ -66,22 +63,17 @@ io.on('connection', socket => {
     r.sharer = null;
     io.to(rid).emit('scr-stopped');
   });
-  // Viewer tells sharer "I want your stream"
   socket.on('scr-request', ({ sharerId }) => {
     socket.to(sharerId).emit('scr-viewer', { viewerId: socket.id });
   });
 
-  // ── WebRTC signaling — pure relay, server never touches SDP ─
-  // 'kind' separates screen ('s') from voice ('v') signals
   socket.on('signal', ({ to, kind, data }) => {
     socket.to(to).emit('signal', { from: socket.id, kind, data });
   });
 
-  // ── Voice presence ──────────────────────────────────────────
   socket.on('voice-join', () => {
     const r = rooms[rid]; if (!r) return;
     r.voiceSet.add(socket.id);
-    // Tell the joiner who else is already in voice
     socket.emit('voice-peers', { peers: [...r.voiceSet].filter(x => x !== socket.id) });
     socket.to(rid).emit('voice-new', { id: socket.id });
   });
@@ -91,7 +83,6 @@ io.on('connection', socket => {
     socket.to(rid).emit('voice-gone', { id: socket.id });
   });
 
-  // ── Chat ────────────────────────────────────────────────────
   socket.on('msg', ({ text }) => {
     const r = rooms[rid]; if (!r || !r.users[socket.id]) return;
     const u = r.users[socket.id];
@@ -102,7 +93,6 @@ io.on('connection', socket => {
   });
   socket.on('rx', ({ emoji }) => { if (rooms[rid]) io.to(rid).emit('rx', { emoji }); });
 
-  // ── Disconnect ──────────────────────────────────────────────
   socket.on('disconnect', () => {
     if (!rid || !rooms[rid]) return;
     const r = rooms[rid];

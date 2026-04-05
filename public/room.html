@@ -138,6 +138,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
     <button class="btn" id="vBtn" onclick="toggleVoice()">🎙️ <span class="lbl">Voice</span></button>
     <button class="btn" id="mBtn" onclick="toggleMute()" style="display:none">🔇 <span class="lbl">Mute</span></button>
     <button class="btn" id="sBtn" onclick="toggleScr()">🖥️ <span class="lbl">Share</span></button>
+    <button class="btn" id="unmuteVoiceBtn" onclick="unmuteAllVoice()" style="background:var(--ok);display:none">🔊 <span class="lbl">Unmute Voice</span></button>
     <button class="btn mob" onclick="document.getElementById('side').classList.toggle('open')">💬</button>
     <button class="btn" onclick="leave()" style="border-color:var(--er);color:var(--er)">🚪 <span class="lbl">Leave</span></button>
   </div>
@@ -147,23 +148,19 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
   <!-- VIDEO SECTION -->
   <div class="vsec">
     <div class="vbox">
-      <!-- Placeholder shown when nothing playing -->
       <div class="ph" id="ph">
         <div style="font-size:2.5rem">🎬</div>
         <h2>Nothing Playing</h2>
         <p>Choose a source below and paste a URL, or click Share Screen for Netflix/Prime.</p>
       </div>
 
-      <!-- YouTube / Google Drive / any website embed -->
       <iframe id="ifr" allowfullscreen allow="autoplay;fullscreen;encrypted-media;picture-in-picture"></iframe>
 
-      <!-- Screen share: what the VIEWER sees (received via WebRTC) -->
-      <video id="scrVid" autoplay playsinline></video>
+      <!-- FIX 1: added muted attribute to screen share video for mobile autoplay -->
+      <video id="scrVid" autoplay playsinline muted></video>
 
-      <!-- Screen share: what the HOST sees (local preview) -->
       <video id="prvVid" autoplay playsinline muted></video>
 
-      <!-- Direct video player -->
       <div id="plyr">
         <video id="vid" playsinline></video>
         <div class="subov"><span id="subTxt"></span></div>
@@ -201,7 +198,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
         </div>
       </div>
 
-      <!-- Overlay buttons -->
       <button class="fsbtn" id="fsbtn" onclick="scrFull()">⛶ Fullscreen</button>
       <div class="qbdg" id="qbdg">1080p 60fps</div>
       <div class="scrbar" id="scrbar">
@@ -210,7 +206,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
       </div>
     </div>
 
-    <!-- URL / source bar -->
     <div class="ubar">
       <select class="usel" id="srcSel" onchange="srcChg()">
         <option value="direct">🎬 Direct (.mp4 / .mkv)</option>
@@ -222,7 +217,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
       <button class="ulbtn" onclick="loadVid()">▶ Load</button>
     </div>
 
-    <!-- Subtitle / track row (visible only for direct player) -->
     <div class="subrow" id="subrow">
       📄 Tracks: <span id="trkInfo" style="font-size:.68rem;color:var(--dm)">load a video first</span>
       <button class="sfbtn" onclick="document.getElementById('subFile').click()">+ SRT / VTT</button>
@@ -264,40 +258,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 <div class="toast" id="toast"></div>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-/* =============================================================
-   APPROACH: Same as how Discord / Google Meet work internally.
-
-   1. SERVER IS A PURE RELAY. It never touches SDP or ICE.
-      All WebRTC data goes: peer A → server → peer B, unchanged.
-
-   2. ICE CANDIDATE BUFFERING.
-      ICE candidates often arrive before setRemoteDescription()
-      finishes. We buffer them and apply after. This is the single
-      most common cause of black screen and no audio.
-
-   3. ONE RTCPeerConnection PER PAIR PER CHANNEL.
-      Screen share and voice use the SAME signal path but a
-      different 'kind' field ('s' for screen, 'v' for voice).
-      This prevents cross-contamination.
-
-   4. ontrack → NEW MediaStream([track]).
-      We never rely on event.streams[]. It is unreliable in Chrome
-      and Safari. Instead we build a new MediaStream from the track.
-
-   5. AUDIO ELEMENT PER PEER.
-      Each remote voice peer gets a fresh <audio> element with
-      autoplay=true. We never reuse or mutate old elements.
-
-   6. NO ECHO.
-      getUserMedia already applies AEC (Acoustic Echo Cancellation)
-      when echoCancellation:true. We additionally never connect the
-      local mic to any speaker (no AudioContext loopback).
-
-   7. VIDEO EVENTS CLEANED UP ON EACH LOAD.
-      We store and remove old addEventListener calls so they never
-      stack up across multiple video loads (which caused the freeze).
-============================================================= */
-
 'use strict';
 
 const RID  = location.pathname.split('/room/')[1];
@@ -306,40 +266,32 @@ const NAME = sessionStorage.getItem('wt-name') || ('Guest' + (Math.random() * 99
 let ME = null;
 let users = {};
 
-// video sync
 let syncLock = false, syncTmr = null, seekTmr = null;
-const VL = {}; // stored video event listeners for cleanup
+const VL = {};
 
-// screen share
 let scrOn = false, scrStream = null;
-// key = peerId, value = { pc: RTCPeerConnection, buf: [] }
 const scrPC = {};
 
-// voice
 let micOn = false, micMuted = false, micStream = null;
-const voicePC = {};  // peerId → { pc, buf }
-const remAudio = {}; // peerId → <audio>
+const voicePC = {};
+const remAudio = {};
 
-// subtitles
 let extCues = [], extSubOn = false;
 
-/*
-  ICE servers: 4 Google STUN + 1 free TURN relay.
-  TURN is essential for mobile / corporate networks where STUN alone fails.
-*/
+// ==================== IMPROVED ICE SERVERS (Cloudflare STUN + TURN) ====================
 const ICE = {
   iceServers: [
+    { urls: 'stun:stun.cloudflare.com:3478' },
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun4.l.google.com:19302' },
-    { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:turn.cloudflare.com:3478?transport=udp', username: 'any', credential: 'any' },
+    { urls: 'turn:turn.cloudflare.com:3478?transport=tcp', username: 'any', credential: 'any' }
   ],
   iceCandidatePoolSize: 10,
 };
 
-// ── socket ────────────────────────────────────────────────────
 const socket = io({ transports: ['websocket', 'polling'] });
 
 socket.on('connect', () => {
@@ -355,7 +307,6 @@ socket.on('init', ({ me, users: u, video: v, msgs, sharer, voiceUsers }) => {
   renderUsers();
   msgs.forEach(m => addMsg(m, m.uid === ME));
   if (v && v.url) loadState(v);
-  // If someone is already sharing screen, ask them to send us their stream
   if (sharer && sharer !== ME) {
     setTimeout(() => socket.emit('scr-request', { sharerId: sharer }), 800);
   }
@@ -366,7 +317,6 @@ socket.on('user-joined', u => {
   renderUsers();
   toast(u.name + ' joined 👋', 'i');
   sysMsg(u.av + ' ' + u.name + ' joined');
-  // If I am sharing screen or voice, offer to this new user
   if (scrOn)  setTimeout(() => scrOffer(u.id), 400);
   if (micOn)  setTimeout(() => voiceOffer(u.id), 600);
 });
@@ -381,23 +331,19 @@ socket.on('user-left', ({ id }) => {
 
 socket.on('users', list => { users = {}; list.forEach(u => users[u.id] = u); renderUsers(); });
 
-// video sync
 socket.on('v-load',  ({ url, vtype }) => loadState({ url, type: vtype, time: 0, playing: false }));
 socket.on('v-play',  ({ time }) => { const v = getVid(); if (!v) return; lock(() => { v.currentTime = time; v.play().catch(() => {}); }); pIcon(true);  });
 socket.on('v-pause', ({ time }) => { const v = getVid(); if (!v) return; lock(() => { v.currentTime = time; v.pause(); });               pIcon(false); });
 socket.on('v-seek',  ({ time }) => { const v = getVid(); if (!v) return; lock(() => { v.currentTime = time; }); });
 
-// screen share signals
 socket.on('scr-started', ({ sharerId, name }) => {
   toast(name + ' is sharing screen 🖥️', 'i');
   sysMsg('🖥️ ' + name + ' started sharing');
-  // We (viewer) ask sharer to send us an offer
   socket.emit('scr-request', { sharerId });
 });
 socket.on('scr-stopped', () => { hideScr(); sysMsg('🖥️ Screen sharing ended'); });
 socket.on('scr-viewer',  ({ viewerId }) => { if (scrOn) scrOffer(viewerId); });
 
-// ALL WebRTC signals come through 'signal' event with kind='s' (screen) or 'v' (voice)
 socket.on('signal', ({ from, kind, data }) => {
   if (kind === 's-offer')  handleScrOffer(from, data);
   if (kind === 's-answer') handleScrAnswer(from, data);
@@ -407,45 +353,37 @@ socket.on('signal', ({ from, kind, data }) => {
   if (kind === 'v-ice')    handleIce(voicePC[from], data);
 });
 
-// voice presence
 socket.on('voice-peers', ({ peers }) => peers.forEach(id => setTimeout(() => voiceOffer(id), 150)));
 socket.on('voice-new',   ({ id })    => { if (micOn && id !== ME && !voicePC[id]) voiceOffer(id); });
 socket.on('voice-gone',  ({ id })    => closeVoicePC(id));
 
-// chat / reactions
 socket.on('msg', m => { addMsg(m, m.uid === ME); scrollMsgs(); });
 socket.on('rx',  ({ emoji }) => flyRx(emoji));
 
-/* ─────────────────────────────────────────────────────────────
-   ICE CANDIDATE BUFFER
-   We buffer ICE candidates until setRemoteDescription() is done.
-   Without this, candidates arrive too early and get silently dropped
-   → black screen for screen share, silence for voice.
-───────────────────────────────────────────────────────────── */
+// ========== ICE Candidate Buffering ==========
 async function handleIce(entry, candidate) {
   if (!entry) return;
-  // pc.remoteDescription is null until setRemoteDescription() finishes
   if (entry.pc.remoteDescription) {
     try { await entry.pc.addIceCandidate(candidate); } catch (e) { /* ignore */ }
   } else {
-    entry.buf.push(candidate); // buffer it
+    entry.buf.push(candidate);
   }
 }
-
 async function drainBuf(entry) {
-  // Called right after setRemoteDescription() completes
   for (const c of entry.buf) {
-    try { await entry.pc.addIceCandidate(c); } catch (e) { /* ignore */ }
+    try { await entry.pc.addIceCandidate(c); } catch (e) {}
   }
   entry.buf = [];
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SCREEN SHARE
-───────────────────────────────────────────────────────────── */
+// ========== SCREEN SHARE ==========
 async function toggleScr() { scrOn ? stopScr() : await startScr(); }
 
 async function startScr() {
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.CSS.supports('(-webkit-touch-callout: none)')) {
+    toast('Screen sharing not supported on iOS Safari', 'e');
+    return;
+  }
   try {
     scrStream = await navigator.mediaDevices.getDisplayMedia({
       video: { frameRate: { ideal: 60, max: 60 }, width: { ideal: 1920 }, height: { ideal: 1080 } },
@@ -461,9 +399,7 @@ async function startScr() {
     document.getElementById('sBtn').classList.add('on');
     document.getElementById('sBtn').innerHTML = '⏹ <span class="lbl">Sharing</span>';
     socket.emit('scr-start');
-    // Offer to every peer already in the room
     Object.keys(users).filter(id => id !== ME).forEach(id => setTimeout(() => scrOffer(id), 200));
-    // When user clicks "Stop sharing" in browser chrome
     scrStream.getVideoTracks()[0].addEventListener('ended', stopScr);
     toast('Screen sharing started 🖥️', 'i');
   } catch (e) {
@@ -490,75 +426,57 @@ function closeScrPC(id) {
   if (scrPC[id]) { try { scrPC[id].pc.close(); } catch (e) {} delete scrPC[id]; }
 }
 
-// HOST creates offer → sends to viewer
 async function scrOffer(viewerId) {
   closeScrPC(viewerId);
   const entry = { pc: new RTCPeerConnection(ICE), buf: [] };
   scrPC[viewerId] = entry;
   const { pc } = entry;
-
-  // Add all screen tracks
   scrStream.getTracks().forEach(t => {
     const sender = pc.addTrack(t, scrStream);
-    // Set high bitrate after connection
     pc.addEventListener('connectionstatechange', () => {
       if (pc.connectionState === 'connected') {
         const p = sender.getParameters();
         if (!p.encodings) p.encodings = [{}];
-        p.encodings[0].maxBitrate = 8_000_000; // 8 Mbps
+        p.encodings[0].maxBitrate = 8_000_000;
         sender.setParameters(p).catch(() => {});
       }
     }, { once: true });
   });
-
   pc.onicecandidate = e => {
     if (e.candidate) socket.emit('signal', { to: viewerId, kind: 's-ice', data: e.candidate });
   };
   pc.oniceconnectionstatechange = () => {
     if (pc.iceConnectionState === 'failed') pc.restartIce();
   };
-
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   socket.emit('signal', { to: viewerId, kind: 's-offer', data: pc.localDescription });
 }
 
-// VIEWER receives offer → sends answer
 async function handleScrOffer(sharerId, sdp) {
   closeScrPC(sharerId);
   const entry = { pc: new RTCPeerConnection(ICE), buf: [] };
   scrPC[sharerId] = entry;
   const { pc } = entry;
-
   pc.onicecandidate = e => {
     if (e.candidate) socket.emit('signal', { to: sharerId, kind: 's-ice', data: e.candidate });
   };
   pc.oniceconnectionstatechange = () => {
     if (pc.iceConnectionState === 'failed') pc.restartIce();
   };
-
-  /*
-    KEY FIX for black screen:
-    We create the MediaStream BEFORE setting remote description.
-    We assign srcObject to the video element RIGHT AWAY.
-    Then in ontrack we add each track to that stream.
-    This avoids the race where the video element tries to play
-    before srcObject is set.
-  */
   const ms = new MediaStream();
   const sv = document.getElementById('scrVid');
-  sv.srcObject = ms; // assign now, before tracks arrive
-
+  sv.srcObject = ms;
+  // FIX 2: ensure muted for autoplay, and force play
+  sv.muted = true;
+  sv.play().catch(() => {});
   let shown = false;
   pc.ontrack = ({ track }) => {
     ms.addTrack(track);
     if (!shown) {
       shown = true;
       sv.style.display = 'block';
-      sv.play().catch(() => {
-        // Autoplay blocked — resume on first click
-        document.addEventListener('click', () => sv.play().catch(() => {}), { once: true });
-      });
+      sv.play().catch(() => {});
       document.getElementById('prvVid').style.display = 'none';
       document.getElementById('ifr').style.display = 'none';
       document.getElementById('plyr').classList.remove('on');
@@ -567,15 +485,13 @@ async function handleScrOffer(sharerId, sdp) {
       document.getElementById('fsbtn').classList.add('on');
     }
   };
-
   await pc.setRemoteDescription(sdp);
-  await drainBuf(entry); // apply buffered ICE now that remote desc is set
+  await drainBuf(entry);
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
   socket.emit('signal', { to: sharerId, kind: 's-answer', data: pc.localDescription });
 }
 
-// HOST receives answer from viewer
 async function handleScrAnswer(viewerId, sdp) {
   const entry = scrPC[viewerId];
   if (!entry) return;
@@ -597,20 +513,18 @@ function scrFull() {
   (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   VOICE CHAT
-───────────────────────────────────────────────────────────── */
+// ========== VOICE CHAT ==========
 async function toggleVoice() { micOn ? stopVoice() : await startVoice(); }
 
 async function startVoice() {
   try {
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: true,  // removes echo — your voice won't come back to you
-        noiseSuppression: true,  // removes fan/keyboard noise
-        autoGainControl: true,   // keeps volume steady
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
         sampleRate: 48000,
-        channelCount: 1,         // mono — reduces echo risk & bandwidth
+        channelCount: 1,
       },
       video: false,
     });
@@ -618,8 +532,8 @@ async function startVoice() {
     document.getElementById('vBtn').classList.add('grn');
     document.getElementById('vBtn').innerHTML = '🎙️ <span class="lbl">In Voice</span>';
     document.getElementById('mBtn').style.display = 'flex';
+    document.getElementById('unmuteVoiceBtn').style.display = 'flex';
     document.getElementById('vbar').classList.add('on');
-    // Tell server — server replies with voice-peers (who's already in voice)
     socket.emit('voice-join');
     toast('Voice active 🎙️', 'i');
   } catch (e) {
@@ -634,6 +548,7 @@ function stopVoice() {
   document.getElementById('vBtn').classList.remove('grn');
   document.getElementById('vBtn').innerHTML = '🎙️ <span class="lbl">Voice</span>';
   document.getElementById('mBtn').style.display = 'none';
+  document.getElementById('unmuteVoiceBtn').style.display = 'none';
   document.getElementById('mBtn').classList.remove('red');
   document.getElementById('mBtn').innerHTML = '🔇 <span class="lbl">Mute</span>';
   document.getElementById('vbar').classList.remove('on');
@@ -644,12 +559,24 @@ function stopVoice() {
 function toggleMute() {
   if (!micStream) return;
   micMuted = !micMuted;
-  // Disable tracks = no audio packets sent at all (true silence)
   micStream.getAudioTracks().forEach(t => t.enabled = !micMuted);
   const b = document.getElementById('mBtn');
   b.innerHTML = micMuted ? '🔇 <span class="lbl">Unmute</span>' : '🎤 <span class="lbl">Mute</span>';
   b.classList.toggle('red', micMuted);
   toast(micMuted ? 'Muted 🔇' : 'Unmuted 🎤');
+}
+
+// FIX 3: Unmute all incoming voice audio elements (called by user gesture)
+function unmuteAllVoice() {
+  let unmuted = 0;
+  Object.values(remAudio).forEach(audio => {
+    if (audio.muted) {
+      audio.muted = false;
+      unmuted++;
+    }
+  });
+  if (unmuted) toast(`Unmuted ${unmuted} voice streams 🔊`, 'i');
+  else toast('No muted voice streams', 'i');
 }
 
 function closeVoicePC(id) {
@@ -658,18 +585,14 @@ function closeVoicePC(id) {
   renderUsers();
 }
 
-// Build a voice RTCPeerConnection for peerId
 function makeVPC(peerId) {
   closeVoicePC(peerId);
   const entry = { pc: new RTCPeerConnection(ICE), buf: [] };
   voicePC[peerId] = entry;
   const { pc } = entry;
-
-  // Add our mic tracks BEFORE createOffer() so SDP includes audio
   if (micStream) {
     micStream.getAudioTracks().forEach(t => pc.addTrack(t, micStream));
   }
-
   pc.onicecandidate = e => {
     if (e.candidate) socket.emit('signal', { to: peerId, kind: 'v-ice', data: e.candidate });
   };
@@ -679,47 +602,26 @@ function makeVPC(peerId) {
       setTimeout(() => { if (voicePC[peerId]?.pc === pc && pc.iceConnectionState === 'disconnected') pc.restartIce(); }, 5000);
     }
   };
-
-  /*
-    KEY FIX for "no audio":
-    We create a brand new MediaStream from the single incoming track.
-    We attach it to a brand new <audio> element.
-    We NEVER set audio.muted = true.
-    We call audio.play() immediately and also on next user gesture.
-  */
   pc.ontrack = ({ track }) => {
     const ms = new MediaStream([track]);
-
-    // Remove old audio element for this peer if any
     if (remAudio[peerId]) remAudio[peerId].remove();
-
     const audio = document.createElement('audio');
     audio.srcObject = ms;
     audio.autoplay = true;
+    audio.muted = true;   // FIX 4: start muted to allow autoplay on mobile
     audio.volume = 1.0;
-    // CRITICAL: do NOT set audio.muted — it silences all incoming audio
+    audio.playsInline = true;
     audio.style.display = 'none';
     document.body.appendChild(audio);
     remAudio[peerId] = audio;
-
-    // Play immediately
-    audio.play().catch(() => {
-      // Browser blocked autoplay — resume on very next user interaction
-      const resume = () => audio.play().catch(() => {});
-      document.addEventListener('click',      resume, { once: true });
-      document.addEventListener('keydown',    resume, { once: true });
-      document.addEventListener('touchstart', resume, { once: true });
-    });
-
+    audio.play().catch(e => console.warn('audio play', e));
     renderUsers();
   };
-
   return entry;
 }
 
-// We call peerId (we create the offer)
 async function voiceOffer(peerId) {
-  if (voicePC[peerId]) return; // already connected
+  if (voicePC[peerId]) return;
   const entry = makeVPC(peerId);
   try {
     const offer = await entry.pc.createOffer({ offerToReceiveAudio: true });
@@ -731,12 +633,11 @@ async function voiceOffer(peerId) {
   }
 }
 
-// They called us (we answer)
 async function handleVoiceOffer(fromId, sdp) {
-  const entry = makeVPC(fromId); // always fresh PC
+  const entry = makeVPC(fromId);
   try {
     await entry.pc.setRemoteDescription(sdp);
-    await drainBuf(entry); // apply buffered ICE
+    await drainBuf(entry);
     const answer = await entry.pc.createAnswer();
     await entry.pc.setLocalDescription(answer);
     socket.emit('signal', { to: fromId, kind: 'v-answer', data: entry.pc.localDescription });
@@ -746,7 +647,6 @@ async function handleVoiceOffer(fromId, sdp) {
   }
 }
 
-// We get answer from the peer we called
 async function handleVoiceAnswer(fromId, sdp) {
   const entry = voicePC[fromId];
   if (!entry) return;
@@ -759,9 +659,7 @@ async function handleVoiceAnswer(fromId, sdp) {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   VIDEO PLAYER
-───────────────────────────────────────────────────────────── */
+// ========== VIDEO PLAYER ==========
 function srcChg() {
   const s = document.getElementById('srcSel').value;
   document.getElementById('urlInp').placeholder = {
@@ -777,9 +675,7 @@ function loadVid() {
   let url = document.getElementById('urlInp').value.trim();
   const src = document.getElementById('srcSel').value;
   if (!url) { toast('Paste a URL first!', 'e'); return; }
-
   let finalUrl = url, vtype = src;
-
   if (src === 'youtube') {
     const id = ytId(url);
     if (!id) { toast('Invalid YouTube URL', 'e'); return; }
@@ -792,7 +688,6 @@ function loadVid() {
   } else if (src === 'web') {
     vtype = 'iframe';
   }
-
   socket.emit('v-load', { url: finalUrl, vtype });
   loadState({ url: finalUrl, type: vtype, time: 0, playing: false });
 }
@@ -821,42 +716,29 @@ function hideAll() {
   document.getElementById('fsbtn').classList.remove('on');
 }
 
-// ── Direct player ─────────────────────────────────────────────
 function startPlayer(url, t0, play0) {
   const vid = document.getElementById('vid');
-
-  // IMPORTANT: Remove ALL old event listeners before adding new ones.
-  // Without this, play/pause events stack up across loads and fight each other,
-  // causing the video to immediately toggle or freeze.
   Object.entries(VL).forEach(([ev, fn]) => vid.removeEventListener(ev, fn));
   for (const k in VL) delete VL[k];
-
-  // Reset subtitle state
   extCues = []; extSubOn = false;
   document.getElementById('subTxt').textContent = '';
   document.getElementById('subSel').innerHTML = '<option value="off">Subs: Off</option>';
   document.getElementById('subName').textContent = '';
   document.getElementById('trkInfo').textContent = 'Loading…';
-
   document.getElementById('plyr').classList.add('on');
   vid.src = url;
   vid.load();
-
-  // loadedmetadata — fired once when video metadata is ready
   vid.addEventListener('loadedmetadata', () => {
     if (t0 > 0) vid.currentTime = t0;
     if (play0) vid.play().catch(() => {}); else pIcon(false);
     buildTracks();
     updTime(); updSeek();
   }, { once: true });
-
-  // All other listeners — stored for cleanup next time
   const fns = {
     timeupdate: () => { updTime(); updSeek(); if (extSubOn) renderSub(vid.currentTime); },
     progress:   () => updBuf(),
     play:  () => { if (syncLock) return; pIcon(true);  socket.emit('v-play',  { time: vid.currentTime }); },
     pause: () => { if (syncLock) return; pIcon(false); socket.emit('v-pause', { time: vid.currentTime }); },
-    // 'seeked' fires ONCE after seek completes (not 'seeking' which fires many times)
     seeked: () => {
       if (syncLock) return;
       clearTimeout(seekTmr);
@@ -872,8 +754,6 @@ function buildTracks() {
   const subSel = document.getElementById('subSel');
   const audSel = document.getElementById('audSel');
   const info = [];
-
-  // Audio tracks (Chrome: works for multi-audio .mkv / .mp4)
   if (vid.audioTracks && vid.audioTracks.length > 1) {
     audSel.innerHTML = '';
     [...vid.audioTracks].forEach((t, i) => {
@@ -887,11 +767,9 @@ function buildTracks() {
   } else {
     audSel.style.display = 'none';
   }
-
-  // Text tracks (built-in subtitles in .mp4 / .webm)
   const tt = [...vid.textTracks];
   if (tt.length) {
-    tt.forEach(t => { t.mode = 'hidden'; }); // hide browser default rendering
+    tt.forEach(t => { t.mode = 'hidden'; });
     tt.forEach((t, i) => {
       const o = document.createElement('option');
       o.value = 'int:' + i;
@@ -905,7 +783,6 @@ function buildTracks() {
     });
     info.push('📝 ' + tt.length + ' subtitle track(s)');
   }
-
   document.getElementById('trkInfo').textContent = info.length ? info.join(' · ') : 'No internal tracks — use + SRT/VTT';
 }
 
@@ -917,7 +794,7 @@ function pSub(val) {
   if (val === 'off') return;
   if (val.startsWith('int:')) {
     const t = vid.textTracks[+val.split(':')[1]];
-    if (t) t.mode = 'hidden'; // keep hidden so our cuechange handler renders
+    if (t) t.mode = 'hidden';
     return;
   }
   if (val === 'ext') extSubOn = true;
@@ -962,7 +839,6 @@ function parseSRT(txt) {
   }).filter(Boolean);
 }
 function srtT(s) { const [h, mn, r] = s.split(':'), [sc, ms] = r.replace(',', '.').split('.'); return +h * 3600 + +mn * 60 + +sc + +ms / 1000; }
-
 function parseVTT(txt) {
   return txt.replace(/\r\n/g, '\n').replace(/^WEBVTT[^\n]*/, '').trim().split(/\n\n+/).map(b => {
     const ls = b.split('\n').filter(l => l.trim() && !l.startsWith('NOTE'));
@@ -975,7 +851,7 @@ function parseVTT(txt) {
 }
 function vttT(s) { const p = s.split(':').map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1]; }
 
-// ── Seek bar (mouse + touch) ──────────────────────────────────
+// ========== Seek Bar ==========
 const seekEl = document.getElementById('seekw');
 let sDrag = false;
 function seekAt(e) {
@@ -990,7 +866,6 @@ document.addEventListener('mouseup', () => sDrag = false);
 seekEl.addEventListener('touchstart', e => { sDrag = true; seekAt(e); }, { passive: true });
 seekEl.addEventListener('touchmove',  e => { if (sDrag) seekAt(e); }, { passive: true });
 seekEl.addEventListener('touchend', () => sDrag = false);
-
 function updSeek() {
   const vid = document.getElementById('vid'); if (!vid.duration) return;
   const p = (vid.currentTime / vid.duration) * 100;
@@ -1012,11 +887,8 @@ function fmt(s) {
   return h ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
 }
 function pad(n) { return String(n).padStart(2, '0'); }
-
 function lock(fn) { syncLock = true; clearTimeout(syncTmr); fn(); syncTmr = setTimeout(() => syncLock = false, 900); }
 function getVid() { const v = document.getElementById('vid'); return document.getElementById('plyr').classList.contains('on') && v.src ? v : null; }
-
-// ── Player controls ───────────────────────────────────────────
 function pPlay()  { const v = document.getElementById('vid'); if (!v.src) return; v.paused ? v.play().catch(() => {}) : v.pause(); }
 function pSkip(s) { const v = document.getElementById('vid'); if (!v.src) return; v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + s)); }
 function pVol(val){ document.getElementById('vid').volume = val; document.getElementById('volIco').textContent = val == 0 ? '🔇' : val < .5 ? '🔈' : '🔊'; }
@@ -1025,7 +897,7 @@ function pSpeed(v){ document.getElementById('vid').playbackRate = parseFloat(v);
 function pFull()  { const w = document.getElementById('plyr'); (w.requestFullscreen || w.webkitRequestFullscreen).call(w); }
 function pIcon(pl){ document.getElementById('pip').setAttribute('d', pl ? 'M6 19h4V5H6v14zm8-14v14h4V5h-4z' : 'M8 5v14l11-7z'); }
 
-// ── Chat ──────────────────────────────────────────────────────
+// ========== Chat ==========
 function sendChat() { const i = document.getElementById('cinp'), t = i.value.trim(); if (!t) return; socket.emit('msg', { text: t }); i.value = ''; }
 function addMsg(m, mine) {
   const c = document.getElementById('msgs'), d = document.createElement('div');
@@ -1039,7 +911,7 @@ function scrollMsgs() { const c = document.getElementById('msgs'); c.scrollTop =
 function rx(e) { socket.emit('rx', { emoji: e }); flyRx(e); }
 function flyRx(e) { const el = document.createElement('div'); el.className = 'rxp'; el.textContent = e; el.style.left = (Math.random() * (innerWidth - 60) + 20) + 'px'; el.style.top = (innerHeight - 110) + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 2200); }
 
-// ── Users ─────────────────────────────────────────────────────
+// ========== Users ==========
 function renderUsers() {
   const ul = document.getElementById('ulist'); ul.innerHTML = '';
   const inV = Object.keys(remAudio).length + (micOn ? 1 : 0);
@@ -1052,7 +924,7 @@ function renderUsers() {
   });
 }
 
-// ── UI helpers ────────────────────────────────────────────────
+// ========== UI Helpers ==========
 function stab(t) {
   document.querySelectorAll('.stab').forEach((b, i) => b.classList.toggle('on', (t === 'chat' && i === 0) || (t === 'users' && i === 1)));
   document.getElementById('p-chat').classList.toggle('on', t === 'chat');
@@ -1065,7 +937,7 @@ function esc(s) { const d = document.createElement('div'); d.textContent = s; re
 function ytId(u) { const m = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([^&\n?#]+)/); return m ? m[1] : null; }
 function gdId(u) { const m = u.match(/\/d\/([a-zA-Z0-9_-]+)/); return m ? m[1] : null; }
 
-// ── Keyboard shortcuts ────────────────────────────────────────
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
   if (e.code === 'Space') { e.preventDefault(); pPlay(); }
@@ -1082,14 +954,21 @@ document.addEventListener('click', e => {
     sb.classList.remove('open');
 });
 
-// No username → prompt
+// Auto-unmute voice on first user click (optional)
+let voiceUnmuted = false;
+document.addEventListener('click', () => {
+  if (!voiceUnmuted && Object.keys(remAudio).length) {
+    unmuteAllVoice();
+    voiceUnmuted = true;
+  }
+}, { once: true });
+
 if (!sessionStorage.getItem('wt-name')) {
   const n = prompt('Enter your name to join:');
   if (n && n.trim()) { sessionStorage.setItem('wt-name', n.trim()); location.reload(); }
   else location.href = '/';
 }
-
-srcChg(); // init placeholder text
+srcChg();
 </script>
 </body>
 </html>
