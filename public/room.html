@@ -1,3 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>WatchTogether</title>
+<style>
+:root{--bg:#0d0d14;--s:#13131a;--c:#1a1a25;--ac:#7c3aed;--a2:#06b6d4;--tx:#f0f0f8;--dm:#6b6b8a;--bd:#2a2a3a;--ok:#10b981;--er:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.bar{display:flex;align-items:center;gap:.5rem;padding:.5rem .9rem;background:var(--s);border-bottom:1px solid var(--bd);flex-shrink:0;flex-wrap:wrap}
+.logo{font-weight:800;font-size:1rem;background:linear-gradient(135deg,var(--ac),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.code{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);border-radius:6px;padding:.2rem .55rem;font-size:.72rem;font-weight:700;color:var(--a2);cursor:pointer;white-space:nowrap}
+.acts{display:flex;gap:.3rem;margin-left:auto;flex-wrap:wrap}
+.btn{display:flex;align-items:center;gap:.22rem;padding:.32rem .62rem;border:1px solid var(--bd);border-radius:7px;background:var(--c);color:var(--tx);font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.btn.grn{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.red{background:var(--er);border-color:var(--er);color:#fff}
+.mob{display:none}
+.wrap{display:flex;flex:1;overflow:hidden}
+.vsec{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#000;min-width:0}
+.vbox{flex:1;position:relative;background:#000;overflow:hidden}
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;background:radial-gradient(ellipse at center,#1a1a2e,#000);z-index:2;text-align:center;padding:1rem}
+.ph h2{font-size:1.4rem;font-weight:700;color:var(--dm)}
+.ph p{color:var(--dm);font-size:.8rem;max-width:300px;line-height:1.6}
+#ifr,#scrVid,#prvVid{position:absolute;inset:0;display:none;z-index:3}
+#ifr{border:none;width:100%;height:100%}
+#scrVid,#prvVid{width:100%;height:100%;object-fit:contain;background:#000}
+#plyr{position:absolute;inset:0;display:none;flex-direction:column;background:#000;z-index:3}
+#plyr.on{display:flex}
+#vid{width:100%;flex:1;background:#000;object-fit:contain;cursor:pointer;display:block;min-height:0}
+.subov{position:absolute;bottom:76px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:8;max-width:88%}
+.subov span{display:inline-block;background:rgba(0,0,0,.85);color:#fff;font-size:clamp(.8rem,2vw,1.05rem);padding:.18rem .62rem;border-radius:5px;line-height:1.5;white-space:pre-wrap}
+.ctrl{flex-shrink:0;background:linear-gradient(0deg,rgba(0,0,0,.97),transparent);padding:.38rem .65rem .32rem;display:flex;flex-direction:column;gap:.3rem;user-select:none}
+.srow{display:flex;align-items:center;gap:.38rem}
+.tlbl{font-size:.65rem;color:#bbb;white-space:nowrap;min-width:88px}
+.seekw{flex:1;position:relative;height:20px;display:flex;align-items:center;cursor:pointer}
+.seekt{width:100%;height:4px;background:rgba(255,255,255,.2);border-radius:4px;position:relative}
+.seekw:hover .seekt{height:6px}
+.seekbuf{height:100%;background:rgba(255,255,255,.3);border-radius:4px;position:absolute;left:0;top:0;width:0}
+.seekfil{height:100%;background:var(--ac);border-radius:4px;position:absolute;left:0;top:0;width:0}
+.seektm{width:12px;height:12px;background:#fff;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+.crow{display:flex;align-items:center;gap:.28rem;flex-wrap:wrap}
+.cb{background:none;border:none;color:#fff;cursor:pointer;padding:.14rem .22rem;border-radius:4px;font-size:.88rem;display:flex;align-items:center;min-width:22px;justify-content:center}
+.cb:hover{background:rgba(255,255,255,.13)}
+.cb svg{width:15px;height:15px;fill:#fff}
+.vw{display:flex;align-items:center;gap:.2rem}
+.vs{width:58px;height:4px;accent-color:var(--ac);cursor:pointer}
+.csel{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;font-family:inherit;font-size:.65rem;padding:.13rem .28rem;cursor:pointer;max-width:98px}
+.csel option{background:#1a1a25}
+.sp{flex:1}
+.fsbtn{position:absolute;top:.6rem;right:.6rem;z-index:10;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;font-size:.72rem;padding:.26rem .58rem;cursor:pointer;display:none;font-family:inherit;font-weight:600;align-items:center;gap:.22rem}
+.fsbtn.on{display:flex}
+.scrbar{display:none;position:absolute;bottom:.65rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);border:1px solid var(--bd);border-radius:9px;padding:.3rem .75rem;gap:.55rem;align-items:center;font-size:.75rem;z-index:10;white-space:nowrap}
+.scrbar.on{display:flex}
+.qbdg{position:absolute;top:.6rem;left:.6rem;z-index:10;background:rgba(0,0,0,.7);border:1px solid var(--ok);color:var(--ok);padding:.12rem .38rem;border-radius:5px;font-size:.62rem;font-weight:700;display:none}
+.qbdg.on{display:block}
+.ubar{display:flex;gap:.32rem;padding:.44rem .62rem;background:var(--s);border-top:1px solid var(--bd);flex-wrap:wrap;flex-shrink:0}
+.usel{padding:.34rem .48rem;background:var(--c);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:inherit;font-size:.72rem;cursor:pointer}
+.uinp{flex:1;padding:.34rem .58rem;background:var(--c);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:inherit;font-size:.76rem;min-width:0}
+.uinp:focus{outline:none;border-color:var(--ac)}
+.ulbtn{padding:.34rem .75rem;background:var(--ac);border:none;border-radius:7px;color:#fff;font-family:inherit;font-size:.76rem;font-weight:600;cursor:pointer}
+.ulbtn:hover{background:#6d28d9}
+.subrow{display:none;align-items:center;gap:.4rem;padding:.26rem .62rem;background:rgba(6,182,212,.06);border-top:1px solid rgba(6,182,212,.14);font-size:.72rem;color:var(--a2);flex-shrink:0;flex-wrap:wrap}
+.subrow.on{display:flex}
+.sfbtn{background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:6px;color:var(--a2);font-family:inherit;font-size:.68rem;font-weight:600;padding:.18rem .48rem;cursor:pointer}
+#subFile{display:none}
+.side{width:300px;display:flex;flex-direction:column;background:var(--s);border-left:1px solid var(--bd);flex-shrink:0}
+.stabs{display:flex;border-bottom:1px solid var(--bd)}
+.stab{flex:1;padding:.58rem;border:none;background:transparent;color:var(--dm);font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.stab.on{color:var(--a2);border-bottom-color:var(--a2)}
+.span{display:none;flex:1;flex-direction:column;overflow:hidden}
+.span.on{display:flex}
+.ulist{flex:1;overflow-y:auto;padding:.62rem}
+.ui{display:flex;align-items:center;gap:.5rem;padding:.4rem .54rem;border-radius:9px;margin-bottom:.3rem;background:var(--c);border:1px solid var(--bd)}
+.uav{width:30px;height:30px;border-radius:50%;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.unm{font-weight:600;font-size:.82rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ubdg{display:flex;gap:.15rem}
+.bdg{font-size:.58rem;padding:.06rem .26rem;border-radius:4px;font-weight:700}
+.bh{background:rgba(245,158,11,.2);color:#f59e0b}
+.bm{background:rgba(16,185,129,.2);color:var(--ok)}
+.bs{background:rgba(6,182,212,.2);color:var(--a2)}
+.vbar{display:none;align-items:center;gap:.38rem;padding:.36rem .62rem;background:rgba(16,185,129,.07);border-top:1px solid rgba(16,185,129,.18);font-size:.74rem;flex-shrink:0}
+.vbar.on{display:flex}
+.vdot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:vd 1s ease infinite}
+@keyframes vd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.cmsg{flex:1;overflow-y:auto;padding:.52rem;display:flex;flex-direction:column;gap:.38rem}
+.msg{background:var(--c);border:1px solid var(--bd);border-radius:10px 10px 10px 3px;padding:.38rem .52rem}
+.msg.me{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.28);border-radius:10px 10px 3px 10px}
+.mh{display:flex;align-items:center;gap:.24rem;margin-bottom:.1rem}
+.mn{font-size:.65rem;font-weight:700;color:var(--a2)}
+.mt{font-size:.57rem;color:var(--dm);margin-left:auto}
+.mb{font-size:.79rem;line-height:1.5;word-break:break-word}
+.sys{text-align:center;font-size:.65rem;color:var(--dm);padding:.1rem 0}
+.rxbar{display:flex;gap:.26rem;padding:.36rem .54rem;border-top:1px solid var(--bd);overflow-x:auto;flex-shrink:0}
+.rxb{border:1px solid var(--bd);background:var(--c);border-radius:7px;padding:.16rem .4rem;font-size:.88rem;cursor:pointer;transition:transform .1s}
+.rxb:hover{transform:scale(1.3)}
+.carea{display:flex;gap:.32rem;padding:.46rem;border-top:1px solid var(--bd);flex-shrink:0}
+.cinp{flex:1;padding:.4rem .56rem;background:var(--c);border:1px solid var(--bd);border-radius:9px;color:var(--tx);font-family:inherit;font-size:.79rem}
+.cinp:focus{outline:none;border-color:var(--ac)}
+.csnd{padding:.4rem .68rem;background:var(--ac);border:none;border-radius:9px;color:#fff;cursor:pointer;font-size:.88rem}
+.csnd:hover{background:#6d28d9}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ok);color:#fff;padding:.48rem 1rem;border-radius:100px;font-weight:600;font-size:.76rem;transition:transform .22s ease;z-index:9999;white-space:nowrap;pointer-events:none}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.e{background:var(--er)}.toast.i{background:var(--ac)}
+.rxp{position:fixed;font-size:1.8rem;pointer-events:none;animation:fly 2s ease forwards;z-index:9998}
+@keyframes fly{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-180px) scale(.4)}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:10px}
+@media(max-width:768px){
+  .mob{display:flex}
+  .side{position:fixed;right:-100%;top:0;bottom:0;z-index:50;width:min(300px,100vw);transition:right .22s}
+  .side.open{right:0}
+  .btn .lbl{display:none}
+  .vs{width:40px}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="logo">🎬 WatchTogether</div>
+  <div class="code" id="codePill" onclick="cpLink()">Copy invite link</div>
+  <div class="acts">
+    <button class="btn" id="vBtn" onclick="toggleVoice()">🎙️ <span class="lbl">Voice</span></button>
+    <button class="btn" id="mBtn" onclick="toggleMute()" style="display:none">🔇 <span class="lbl">Mute</span></button>
+    <button class="btn" id="sBtn" onclick="toggleScr()">🖥️ <span class="lbl">Share</span></button>
+    <button class="btn" id="unmuteVoiceBtn" onclick="unmuteAllVoice()" style="background:var(--ok);display:none">🔊 <span class="lbl">Unmute Voice</span></button>
+    <button class="btn mob" onclick="document.getElementById('side').classList.toggle('open')">💬</button>
+    <button class="btn" onclick="leave()" style="border-color:var(--er);color:var(--er)">🚪 <span class="lbl">Leave</span></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="vsec">
+    <div class="vbox">
+      <div class="ph" id="ph">
+        <div style="font-size:2.5rem">🎬</div>
+        <h2>Nothing Playing</h2>
+        <p>Choose a source below and paste a URL, or click Share Screen for Netflix/Prime.</p>
+      </div>
+      <iframe id="ifr" allowfullscreen allow="autoplay;fullscreen;encrypted-media;picture-in-picture"></iframe>
+      <video id="scrVid" autoplay playsinline muted></video>
+      <video id="prvVid" autoplay playsinline muted></video>
+      <div id="plyr">
+        <video id="vid" playsinline></video>
+        <div class="subov"><span id="subTxt"></span></div>
+        <div class="ctrl">
+          <div class="srow">
+            <span class="tlbl" id="tlbl">0:00 / 0:00</span>
+            <div class="seekw" id="seekw">
+              <div class="seekt">
+                <div class="seekbuf" id="seekbuf"></div>
+                <div class="seekfil" id="seekfil"></div>
+                <div class="seektm"  id="seektm"></div>
+              </div>
+            </div>
+          </div>
+          <div class="crow">
+            <button class="cb" onclick="pPlay()"><svg><path id="pip" d="M8 5v14l11-7z"/></svg></button>
+            <button class="cb" onclick="pSkip(-10)">⏮10s</button>
+            <button class="cb" onclick="pSkip(10)">10s⏭</button>
+            <div class="vw">
+              <button class="cb" id="volIco" onclick="pMute()">🔊</button>
+              <input type="range" class="vs" id="volSl" min="0" max="1" step="0.02" value="1" oninput="pVol(this.value)"/>
+            </div>
+            <div class="sp"></div>
+            <select class="csel" id="audSel" onchange="pAudio(this.value)" style="display:none"></select>
+            <select class="csel" id="subSel" onchange="pSub(this.value)">
+              <option value="off">Subs: Off</option>
+            </select>
+            <select class="csel" onchange="pSpeed(this.value)">
+              <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option><option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option><option value="2">2×</option>
+            </select>
+            <button class="cb" onclick="pFull()"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <button class="fsbtn" id="fsbtn" onclick="scrFull()">⛶ Fullscreen</button>
+      <div class="qbdg" id="qbdg">1080p 60fps</div>
+      <div class="scrbar" id="scrbar">
+        🖥️ You are sharing your screen
+        <button class="btn red" onclick="stopScr()" style="padding:.16rem .46rem;font-size:.68rem">⏹ Stop</button>
+      </div>
+    </div>
+    <div class="ubar">
+      <select class="usel" id="srcSel" onchange="srcChg()">
+        <option value="direct">🎬 Direct (.mp4 / .mkv)</option>
+        <option value="youtube">▶ YouTube</option>
+        <option value="gdrive">☁ Google Drive</option>
+        <option value="web">🌐 Any Website</option>
+      </select>
+      <input class="uinp" id="urlInp" placeholder="Paste .mp4 / .mkv / .webm / .m3u8 URL here…"/>
+      <button class="ulbtn" onclick="loadVid()">▶ Load</button>
+    </div>
+    <div class="subrow" id="subrow">
+      📄 Tracks: <span id="trkInfo" style="font-size:.68rem;color:var(--dm)">load a video first</span>
+      <button class="sfbtn" onclick="document.getElementById('subFile').click()">+ SRT / VTT</button>
+      <input type="file" id="subFile" accept=".srt,.vtt" onchange="loadSub(this)"/>
+      <span id="subName" style="color:var(--ok);font-size:.7rem"></span>
+    </div>
+  </div>
+
+  <div class="side" id="side">
+    <div class="stabs">
+      <button class="stab on" onclick="stab('chat')">💬 Chat</button>
+      <button class="stab"    onclick="stab('users')">👥 Users</button>
+    </div>
+    <div class="span on" id="p-chat">
+      <div class="cmsg" id="msgs"></div>
+      <div class="rxbar">
+        <button class="rxb" onclick="rx('😂')">😂</button><button class="rxb" onclick="rx('❤️')">❤️</button>
+        <button class="rxb" onclick="rx('🔥')">🔥</button><button class="rxb" onclick="rx('😮')">😮</button>
+        <button class="rxb" onclick="rx('👏')">👏</button><button class="rxb" onclick="rx('😢')">😢</button>
+        <button class="rxb" onclick="rx('💀')">💀</button><button class="rxb" onclick="rx('🍿')">🍿</button>
+      </div>
+      <div class="carea">
+        <input class="cinp" id="cinp" placeholder="Say something…" maxlength="300" onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="csnd" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+    <div class="span" id="p-users">
+      <div class="ulist" id="ulist"></div>
+      <div class="vbar" id="vbar">
+        <div class="vdot"></div>
+        <span style="font-size:.76rem;font-weight:600">Voice Active</span>
+        <span id="vcnt" style="margin-left:auto;font-size:.72rem;color:var(--dm)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
 'use strict';
@@ -241,3 +477,5 @@ if (!sessionStorage.getItem('wt-name')) {
 }
 
 </script>
+</body>
+</html>
