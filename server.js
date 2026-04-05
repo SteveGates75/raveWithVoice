@@ -18,7 +18,6 @@ app.post('/create', (_, res) => {
   res.json({ id });
 });
 
-// rooms[id] = { users:{}, video:{}, msgs:[], sharer:null, voiceSet:Set }
 const rooms = {};
 function getRoom(id) {
   if (!rooms[id]) rooms[id] = { users: {}, video: { url: '', type: 'direct', playing: false, time: 0 }, msgs: [], sharer: null, voiceSet: new Set() };

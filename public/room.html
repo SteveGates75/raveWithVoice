@@ -19,24 +19,19 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 .btn.red{background:var(--er);border-color:var(--er);color:#fff}
 .mob{display:none}
 .wrap{display:flex;flex:1;overflow:hidden}
-/* video area */
 .vsec{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#000;min-width:0}
 .vbox{flex:1;position:relative;background:#000;overflow:hidden}
 .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;background:radial-gradient(ellipse at center,#1a1a2e,#000);z-index:2;text-align:center;padding:1rem}
 .ph h2{font-size:1.4rem;font-weight:700;color:var(--dm)}
 .ph p{color:var(--dm);font-size:.8rem;max-width:300px;line-height:1.6}
-/* All video elements — position absolute so they stack */
 #ifr,#scrVid,#prvVid{position:absolute;inset:0;display:none;z-index:3}
 #ifr{border:none;width:100%;height:100%}
 #scrVid,#prvVid{width:100%;height:100%;object-fit:contain;background:#000}
-/* direct player */
 #plyr{position:absolute;inset:0;display:none;flex-direction:column;background:#000;z-index:3}
 #plyr.on{display:flex}
 #vid{width:100%;flex:1;background:#000;object-fit:contain;cursor:pointer;display:block;min-height:0}
-/* subtitle */
 .subov{position:absolute;bottom:76px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:8;max-width:88%}
 .subov span{display:inline-block;background:rgba(0,0,0,.85);color:#fff;font-size:clamp(.8rem,2vw,1.05rem);padding:.18rem .62rem;border-radius:5px;line-height:1.5;white-space:pre-wrap}
-/* player controls */
 .ctrl{flex-shrink:0;background:linear-gradient(0deg,rgba(0,0,0,.97),transparent);padding:.38rem .65rem .32rem;display:flex;flex-direction:column;gap:.3rem;user-select:none}
 .srow{display:flex;align-items:center;gap:.38rem}
 .tlbl{font-size:.65rem;color:#bbb;white-space:nowrap;min-width:88px}
@@ -55,33 +50,28 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 .csel{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;font-family:inherit;font-size:.65rem;padding:.13rem .28rem;cursor:pointer;max-width:98px}
 .csel option{background:#1a1a25}
 .sp{flex:1}
-/* overlays */
 .fsbtn{position:absolute;top:.6rem;right:.6rem;z-index:10;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;font-size:.72rem;padding:.26rem .58rem;cursor:pointer;display:none;font-family:inherit;font-weight:600;align-items:center;gap:.22rem}
 .fsbtn.on{display:flex}
 .scrbar{display:none;position:absolute;bottom:.65rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);border:1px solid var(--bd);border-radius:9px;padding:.3rem .75rem;gap:.55rem;align-items:center;font-size:.75rem;z-index:10;white-space:nowrap}
 .scrbar.on{display:flex}
 .qbdg{position:absolute;top:.6rem;left:.6rem;z-index:10;background:rgba(0,0,0,.7);border:1px solid var(--ok);color:var(--ok);padding:.12rem .38rem;border-radius:5px;font-size:.62rem;font-weight:700;display:none}
 .qbdg.on{display:block}
-/* url bar */
 .ubar{display:flex;gap:.32rem;padding:.44rem .62rem;background:var(--s);border-top:1px solid var(--bd);flex-wrap:wrap;flex-shrink:0}
 .usel{padding:.34rem .48rem;background:var(--c);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:inherit;font-size:.72rem;cursor:pointer}
 .uinp{flex:1;padding:.34rem .58rem;background:var(--c);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:inherit;font-size:.76rem;min-width:0}
 .uinp:focus{outline:none;border-color:var(--ac)}
 .ulbtn{padding:.34rem .75rem;background:var(--ac);border:none;border-radius:7px;color:#fff;font-family:inherit;font-size:.76rem;font-weight:600;cursor:pointer}
 .ulbtn:hover{background:#6d28d9}
-/* subtitle row */
 .subrow{display:none;align-items:center;gap:.4rem;padding:.26rem .62rem;background:rgba(6,182,212,.06);border-top:1px solid rgba(6,182,212,.14);font-size:.72rem;color:var(--a2);flex-shrink:0;flex-wrap:wrap}
 .subrow.on{display:flex}
 .sfbtn{background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:6px;color:var(--a2);font-family:inherit;font-size:.68rem;font-weight:600;padding:.18rem .48rem;cursor:pointer}
 #subFile{display:none}
-/* sidebar */
 .side{width:300px;display:flex;flex-direction:column;background:var(--s);border-left:1px solid var(--bd);flex-shrink:0}
 .stabs{display:flex;border-bottom:1px solid var(--bd)}
 .stab{flex:1;padding:.58rem;border:none;background:transparent;color:var(--dm);font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
 .stab.on{color:var(--a2);border-bottom-color:var(--a2)}
 .span{display:none;flex:1;flex-direction:column;overflow:hidden}
 .span.on{display:flex}
-/* users */
 .ulist{flex:1;overflow-y:auto;padding:.62rem}
 .ui{display:flex;align-items:center;gap:.5rem;padding:.4rem .54rem;border-radius:9px;margin-bottom:.3rem;background:var(--c);border:1px solid var(--bd)}
 .uav{width:30px;height:30px;border-radius:50%;background:rgba(124,58,237,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
@@ -95,7 +85,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 .vbar.on{display:flex}
 .vdot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:vd 1s ease infinite}
 @keyframes vd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
-/* chat */
 .cmsg{flex:1;overflow-y:auto;padding:.52rem;display:flex;flex-direction:column;gap:.38rem}
 .msg{background:var(--c);border:1px solid var(--bd);border-radius:10px 10px 10px 3px;padding:.38rem .52rem}
 .msg.me{background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.28);border-radius:10px 10px 3px 10px}
@@ -112,7 +101,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 .cinp:focus{outline:none;border-color:var(--ac)}
 .csnd{padding:.4rem .68rem;background:var(--ac);border:none;border-radius:9px;color:#fff;cursor:pointer;font-size:.88rem}
 .csnd:hover{background:#6d28d9}
-/* toast */
 .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ok);color:#fff;padding:.48rem 1rem;border-radius:100px;font-weight:600;font-size:.76rem;transition:transform .22s ease;z-index:9999;white-space:nowrap;pointer-events:none}
 .toast.on{transform:translateX(-50%) translateY(0)}
 .toast.e{background:var(--er)}.toast.i{background:var(--ac)}
@@ -130,7 +118,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div class="bar">
   <div class="logo">🎬 WatchTogether</div>
   <div class="code" id="codePill" onclick="cpLink()">Copy invite link</div>
@@ -145,7 +132,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
 </div>
 
 <div class="wrap">
-  <!-- VIDEO SECTION -->
   <div class="vsec">
     <div class="vbox">
       <div class="ph" id="ph">
@@ -153,14 +139,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
         <h2>Nothing Playing</h2>
         <p>Choose a source below and paste a URL, or click Share Screen for Netflix/Prime.</p>
       </div>
-
       <iframe id="ifr" allowfullscreen allow="autoplay;fullscreen;encrypted-media;picture-in-picture"></iframe>
-
-      <!-- FIX 1: added muted attribute to screen share video for mobile autoplay -->
       <video id="scrVid" autoplay playsinline muted></video>
-
       <video id="prvVid" autoplay playsinline muted></video>
-
       <div id="plyr">
         <video id="vid" playsinline></video>
         <div class="subov"><span id="subTxt"></span></div>
@@ -197,7 +178,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
           </div>
         </div>
       </div>
-
       <button class="fsbtn" id="fsbtn" onclick="scrFull()">⛶ Fullscreen</button>
       <div class="qbdg" id="qbdg">1080p 60fps</div>
       <div class="scrbar" id="scrbar">
@@ -205,7 +185,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
         <button class="btn red" onclick="stopScr()" style="padding:.16rem .46rem;font-size:.68rem">⏹ Stop</button>
       </div>
     </div>
-
     <div class="ubar">
       <select class="usel" id="srcSel" onchange="srcChg()">
         <option value="direct">🎬 Direct (.mp4 / .mkv)</option>
@@ -216,7 +195,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
       <input class="uinp" id="urlInp" placeholder="Paste .mp4 / .mkv / .webm / .m3u8 URL here…"/>
       <button class="ulbtn" onclick="loadVid()">▶ Load</button>
     </div>
-
     <div class="subrow" id="subrow">
       📄 Tracks: <span id="trkInfo" style="font-size:.68rem;color:var(--dm)">load a video first</span>
       <button class="sfbtn" onclick="document.getElementById('subFile').click()">+ SRT / VTT</button>
@@ -225,7 +203,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',sans-serif;heig
     </div>
   </div>
 
-  <!-- SIDEBAR -->
   <div class="side" id="side">
     <div class="stabs">
       <button class="stab on" onclick="stab('chat')">💬 Chat</button>
@@ -278,16 +255,12 @@ const remAudio = {};
 
 let extCues = [], extSubOn = false;
 
-// ==================== IMPROVED ICE SERVERS (Cloudflare STUN + TURN) ====================
+// ========== FIXED ICE (ONLY STUN, NO FAKE TURN) ==========
 const ICE = {
   iceServers: [
-    { urls: 'stun:stun.cloudflare.com:3478' },
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-    { urls: 'turn:turn.cloudflare.com:3478?transport=udp', username: 'any', credential: 'any' },
-    { urls: 'turn:turn.cloudflare.com:3478?transport=tcp', username: 'any', credential: 'any' }
+    { urls: 'stun:stun2.l.google.com:19302' }
   ],
   iceCandidatePoolSize: 10,
 };
@@ -376,23 +349,26 @@ async function drainBuf(entry) {
   entry.buf = [];
 }
 
-// ========== SCREEN SHARE ==========
+// ========== SCREEN SHARE (FIXED: lower res, playsinline) ==========
 async function toggleScr() { scrOn ? stopScr() : await startScr(); }
 
 async function startScr() {
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.CSS.supports('(-webkit-touch-callout: none)')) {
-    toast('Screen sharing not supported on iOS Safari', 'e');
-    return;
-  }
   try {
     scrStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: { ideal: 60, max: 60 }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: { echoCancellation: false, noiseSuppression: false },
+      video: {
+        frameRate: { ideal: 30, max: 30 },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: true
     });
     scrOn = true;
     hideAll();
     const pv = document.getElementById('prvVid');
     pv.srcObject = scrStream;
+    pv.muted = true;
+    pv.setAttribute('playsinline', '');
+    await pv.play().catch(() => {});
     pv.style.display = 'block';
     document.getElementById('scrbar').classList.add('on');
     document.getElementById('qbdg').classList.add('on');
@@ -434,13 +410,8 @@ async function scrOffer(viewerId) {
   scrStream.getTracks().forEach(t => {
     const sender = pc.addTrack(t, scrStream);
     pc.addEventListener('connectionstatechange', () => {
-      if (pc.connectionState === 'connected') {
-        const p = sender.getParameters();
-        if (!p.encodings) p.encodings = [{}];
-        p.encodings[0].maxBitrate = 8_000_000;
-        sender.setParameters(p).catch(() => {});
-      }
-    }, { once: true });
+      if (pc.connectionState === 'failed') pc.restartIce();
+    });
   });
   pc.onicecandidate = e => {
     if (e.candidate) socket.emit('signal', { to: viewerId, kind: 's-ice', data: e.candidate });
@@ -467,9 +438,9 @@ async function handleScrOffer(sharerId, sdp) {
   const ms = new MediaStream();
   const sv = document.getElementById('scrVid');
   sv.srcObject = ms;
-  // FIX 2: ensure muted for autoplay, and force play
   sv.muted = true;
-  sv.play().catch(() => {});
+  sv.setAttribute('playsinline', '');
+  await sv.play().catch(() => {});
   let shown = false;
   pc.ontrack = ({ track }) => {
     ms.addTrack(track);
@@ -513,7 +484,7 @@ function scrFull() {
   (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
 }
 
-// ========== VOICE CHAT ==========
+// ========== VOICE CHAT (FIXED: unmute after play) ==========
 async function toggleVoice() { micOn ? stopVoice() : await startVoice(); }
 
 async function startVoice() {
@@ -566,7 +537,6 @@ function toggleMute() {
   toast(micMuted ? 'Muted 🔇' : 'Unmuted 🎤');
 }
 
-// FIX 3: Unmute all incoming voice audio elements (called by user gesture)
 function unmuteAllVoice() {
   let unmuted = 0;
   Object.values(remAudio).forEach(audio => {
@@ -575,7 +545,7 @@ function unmuteAllVoice() {
       unmuted++;
     }
   });
-  if (unmuted) toast(`Unmuted ${unmuted} voice streams 🔊`, 'i');
+  if (unmuted) toast(`Unmuted ${unmuted} voice streams`, 'i');
   else toast('No muted voice streams', 'i');
 }
 
@@ -608,13 +578,14 @@ function makeVPC(peerId) {
     const audio = document.createElement('audio');
     audio.srcObject = ms;
     audio.autoplay = true;
-    audio.muted = true;   // FIX 4: start muted to allow autoplay on mobile
-    audio.volume = 1.0;
     audio.playsInline = true;
-    audio.style.display = 'none';
+    audio.volume = 1.0;
+    audio.muted = true;
     document.body.appendChild(audio);
     remAudio[peerId] = audio;
-    audio.play().catch(e => console.warn('audio play', e));
+    audio.play().then(() => {
+      audio.muted = false;
+    }).catch(() => {});
     renderUsers();
   };
   return entry;
@@ -659,7 +630,7 @@ async function handleVoiceAnswer(fromId, sdp) {
   }
 }
 
-// ========== VIDEO PLAYER ==========
+// ========== VIDEO PLAYER (unchanged) ==========
 function srcChg() {
   const s = document.getElementById('srcSel').value;
   document.getElementById('urlInp').placeholder = {
@@ -954,7 +925,7 @@ document.addEventListener('click', e => {
     sb.classList.remove('open');
 });
 
-// Auto-unmute voice on first user click (optional)
+// ========== CRITICAL: Auto-unmute voice on first user click ==========
 let voiceUnmuted = false;
 document.addEventListener('click', () => {
   if (!voiceUnmuted && Object.keys(remAudio).length) {
