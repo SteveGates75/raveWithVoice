@@ -15,32 +15,34 @@ p{color:#888;font-size:.95rem;text-align:center;max-width:380px;line-height:1.6}
 .tab.active{background:#7c3aed;color:#fff}
 .panel{display:none;flex-direction:column;gap:.75rem}
 .panel.active{display:flex}
-input{padding:.75rem 1rem;background:#13131a;border:1px solid #2a2a3a;border-radius:10px;color:#f0f0f8;font-size:.95rem;width:100%;transition:border-color .2s}
+input{padding:.75rem 1rem;background:#13131a;border:1px solid #2a2a3a;border-radius:10px;color:#f0f0f8;font-size:.95rem;width:100%;transition:border-color .2s;font-family:inherit}
 input:focus{outline:none;border-color:#7c3aed}
 input::placeholder{color:#555}
-button.main{padding:.85rem;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+button.main{padding:.85rem;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
 button.main:hover{background:#6d28d9;transform:translateY(-1px)}
 button.main:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .err{color:#ef4444;font-size:.8rem;display:none}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:#10b981;color:#fff;padding:.6rem 1.2rem;border-radius:100px;font-weight:600;font-size:.85rem;transition:transform .3s;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;width:100%;max-width:560px}
+.feat{background:#1a1a25;border:1px solid #2a2a3a;border-radius:12px;padding:1rem;text-align:center}
+.feat div{font-size:1.6rem;margin-bottom:.4rem}
+.feat p{font-size:.78rem;color:#888;line-height:1.4;margin:0}
 </style>
 </head>
 <body>
 <h1>🎬 WatchTogether</h1>
-<p>Watch videos with friends in sync. Voice chat, screen share, subtitles — all free.</p>
+<p>Watch videos with friends in sync. Voice chat, screen share in HD, subtitles — all free.</p>
 
 <div class="card">
   <div class="tabs">
     <button class="tab active" onclick="sw(0)">Create Room</button>
     <button class="tab"        onclick="sw(1)">Join Room</button>
   </div>
-
   <div class="panel active" id="p0">
     <input id="c-name" placeholder="Your name" maxlength="20"/>
     <button class="main" id="c-btn" onclick="create()">🎬 Create Room</button>
   </div>
-
   <div class="panel" id="p1">
     <input id="j-name" placeholder="Your name" maxlength="20"/>
     <input id="j-code" placeholder="Room code (8 letters)" maxlength="8" oninput="this.value=this.value.toUpperCase()"/>
@@ -49,28 +51,25 @@ button.main:disabled{opacity:.5;cursor:not-allowed;transform:none}
   </div>
 </div>
 
+<div class="feats">
+  <div class="feat"><div>🖥️</div><p>HD Screen Share up to 1080p 60fps</p></div>
+  <div class="feat"><div>🎙️</div><p>Clear voice chat, no echo</p></div>
+  <div class="feat"><div>▶️</div><p>YouTube, direct links, Google Drive</p></div>
+  <div class="feat"><div>📄</div><p>Subtitles SRT/VTT + dual audio</p></div>
+</div>
+
 <div class="toast" id="toast"></div>
-
 <script>
-function sw(i){
-  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
-  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));
-}
+function sw(i){document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-
 async function create(){
   const name=document.getElementById('c-name').value.trim();
   if(!name){toast('Enter your name');return;}
   const btn=document.getElementById('c-btn');
   btn.disabled=true;btn.textContent='Creating…';
-  try{
-    const r=await fetch('/create',{method:'POST'});
-    const d=await r.json();
-    sessionStorage.setItem('wt-name',name);
-    location.href='/room/'+d.id;
-  }catch{btn.disabled=false;btn.textContent='🎬 Create Room';toast('Error — try again');}
+  try{const r=await fetch('/create',{method:'POST'});const d=await r.json();sessionStorage.setItem('wt-name',name);location.href='/room/'+d.id;}
+  catch{btn.disabled=false;btn.textContent='🎬 Create Room';toast('Error — try again');}
 }
-
 async function join(){
   const name=document.getElementById('j-name').value.trim();
   const code=document.getElementById('j-code').value.trim().toUpperCase();
@@ -81,12 +80,7 @@ async function join(){
   sessionStorage.setItem('wt-name',name);
   location.href='/room/'+code;
 }
-
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  if(document.getElementById('p0').classList.contains('active'))create();
-  else join();
-});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(document.getElementById('p0').classList.contains('active'))create();else join();});
 </script>
 </body>
 </html>

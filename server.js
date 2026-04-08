@@ -20,7 +20,13 @@ app.post('/create', (_, res) => {
 
 const rooms = {};
 function getRoom(id) {
-  if (!rooms[id]) rooms[id] = { users: {}, video: { url: '', type: 'direct', playing: false, time: 0 }, msgs: [], sharer: null, voiceSet: new Set() };
+  if (!rooms[id]) rooms[id] = {
+    users: {},
+    video: { url: '', type: 'direct', playing: false, time: 0 },
+    msgs: [],
+    sharer: null,
+    voiceSet: new Set()
+  };
   return rooms[id];
 }
 const AVATARS = ['🦊','🐼','🦋','🐉','🦁','🐸','🦄','🐺','🦅','🐬'];
@@ -34,7 +40,6 @@ io.on('connection', socket => {
     const user = { id: socket.id, name, av: AVATARS[name.charCodeAt(0) % AVATARS.length] };
     room.users[socket.id] = user;
     socket.join(rid);
-
     socket.emit('init', {
       me: socket.id,
       users: Object.values(room.users),
@@ -66,6 +71,7 @@ io.on('connection', socket => {
     socket.to(sharerId).emit('scr-viewer', { viewerId: socket.id });
   });
 
+  // Pure relay — server never reads SDP/ICE content
   socket.on('signal', ({ to, kind, data }) => {
     socket.to(to).emit('signal', { from: socket.id, kind, data });
   });
@@ -100,9 +106,10 @@ io.on('connection', socket => {
     delete r.users[socket.id];
     io.to(rid).emit('user-left', { id: socket.id });
     io.to(rid).emit('users', Object.values(r.users));
-    if (!Object.keys(r.users).length) setTimeout(() => { if (rooms[rid] && !Object.keys(rooms[rid].users).length) delete rooms[rid]; }, 600000);
+    if (!Object.keys(r.users).length)
+      setTimeout(() => { if (rooms[rid] && !Object.keys(rooms[rid].users).length) delete rooms[rid]; }, 600000);
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('http://localhost:' + PORT));
+server.listen(PORT, () => console.log('✅ http://localhost:' + PORT));
