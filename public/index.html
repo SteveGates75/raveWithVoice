@@ -6,81 +6,112 @@
 <title>WatchTogether</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d0d14;color:#f0f0f8;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem}
-h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#7c3aed,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-p{color:#888;font-size:.95rem;text-align:center;max-width:380px;line-height:1.6}
-.card{background:#1a1a25;border:1px solid #2a2a3a;border-radius:16px;padding:2rem;width:100%;max-width:400px;display:flex;flex-direction:column;gap:1rem}
-.tabs{display:flex;gap:.5rem}
-.tab{flex:1;padding:.6rem;border:none;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s;background:#13131a;color:#888}
-.tab.active{background:#7c3aed;color:#fff}
-.panel{display:none;flex-direction:column;gap:.75rem}
-.panel.active{display:flex}
-input{padding:.75rem 1rem;background:#13131a;border:1px solid #2a2a3a;border-radius:10px;color:#f0f0f8;font-size:.95rem;width:100%;transition:border-color .2s;font-family:inherit}
+body{background:#0d0d14;color:#f0f0f8;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:1.5rem}
+h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#7c3aed,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.card{background:#1a1a25;border:1px solid #2a2a3a;border-radius:16px;padding:2rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:1rem}
+.tabs{display:flex;gap:.5rem;background:#0d0d14;padding:.3rem;border-radius:10px}
+.tab{flex:1;padding:.55rem;border:none;border-radius:7px;cursor:pointer;font-size:.88rem;font-weight:600;background:transparent;color:#666;font-family:inherit;transition:all .18s}
+.tab.on{background:#7c3aed;color:#fff}
+.panel{display:none;flex-direction:column;gap:.85rem}
+.panel.on{display:flex}
+input{padding:.78rem 1rem;background:#0d0d14;border:1px solid #2a2a3a;border-radius:10px;color:#f0f0f8;font-size:.95rem;width:100%;font-family:inherit;transition:border-color .18s}
 input:focus{outline:none;border-color:#7c3aed}
-input::placeholder{color:#555}
-button.main{padding:.85rem;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
-button.main:hover{background:#6d28d9;transform:translateY(-1px)}
-button.main:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.err{color:#ef4444;font-size:.8rem;display:none}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:#10b981;color:#fff;padding:.6rem 1.2rem;border-radius:100px;font-weight:600;font-size:.85rem;transition:transform .3s;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;width:100%;max-width:560px}
-.feat{background:#1a1a25;border:1px solid #2a2a3a;border-radius:12px;padding:1rem;text-align:center}
-.feat div{font-size:1.6rem;margin-bottom:.4rem}
-.feat p{font-size:.78rem;color:#888;line-height:1.4;margin:0}
+input::placeholder{color:#444}
+.go{padding:.82rem;border:none;border-radius:10px;background:#7c3aed;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:background .18s}
+.go:hover:not(:disabled){background:#6d28d9}
+.go:disabled{opacity:.5;cursor:wait}
+.msg{font-size:.82rem;padding:.55rem .8rem;border-radius:8px;display:none;line-height:1.4}
+.msg.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171}
+.msg.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#34d399}
 </style>
 </head>
 <body>
+
 <h1>🎬 WatchTogether</h1>
-<p>Watch videos with friends in sync. Voice chat, screen share in HD, subtitles — all free.</p>
 
 <div class="card">
   <div class="tabs">
-    <button class="tab active" onclick="sw(0)">Create Room</button>
-    <button class="tab"        onclick="sw(1)">Join Room</button>
+    <button class="tab on"  onclick="sw(0)">Create Room</button>
+    <button class="tab"     onclick="sw(1)">Join Room</button>
   </div>
-  <div class="panel active" id="p0">
+
+  <!-- CREATE -->
+  <div class="panel on" id="p0">
     <input id="c-name" placeholder="Your name" maxlength="20"/>
-    <button class="main" id="c-btn" onclick="create()">🎬 Create Room</button>
+    <button class="go" id="c-btn" onclick="doCreate()">🎬 Create Room</button>
+    <div class="msg" id="c-msg"></div>
   </div>
+
+  <!-- JOIN -->
   <div class="panel" id="p1">
     <input id="j-name" placeholder="Your name" maxlength="20"/>
-    <input id="j-code" placeholder="Room code (8 letters)" maxlength="8" oninput="this.value=this.value.toUpperCase()"/>
-    <div class="err" id="j-err"></div>
-    <button class="main" id="j-btn" onclick="join()">🚀 Join Room</button>
+    <input id="j-code" placeholder="Room code  (e.g. A1B2C3D4)" maxlength="8"
+           style="text-transform:uppercase;letter-spacing:2px"
+           oninput="this.value=this.value.toUpperCase()"/>
+    <button class="go" id="j-btn" onclick="doJoin()">🚀 Join Room</button>
+    <div class="msg" id="j-msg"></div>
   </div>
 </div>
 
-<div class="feats">
-  <div class="feat"><div>🖥️</div><p>HD Screen Share up to 1080p 60fps</p></div>
-  <div class="feat"><div>🎙️</div><p>Clear voice chat, no echo</p></div>
-  <div class="feat"><div>▶️</div><p>YouTube, direct links, Google Drive</p></div>
-  <div class="feat"><div>📄</div><p>Subtitles SRT/VTT + dual audio</p></div>
-</div>
-
-<div class="toast" id="toast"></div>
 <script>
-function sw(i){document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-async function create(){
-  const name=document.getElementById('c-name').value.trim();
-  if(!name){toast('Enter your name');return;}
-  const btn=document.getElementById('c-btn');
-  btn.disabled=true;btn.textContent='Creating…';
-  try{const r=await fetch('/create',{method:'POST'});const d=await r.json();sessionStorage.setItem('wt-name',name);location.href='/room/'+d.id;}
-  catch{btn.disabled=false;btn.textContent='🎬 Create Room';toast('Error — try again');}
+function sw(i) {
+  document.querySelectorAll('.tab').forEach((t,j)   => t.classList.toggle('on', i===j));
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('on', i===j));
 }
-async function join(){
-  const name=document.getElementById('j-name').value.trim();
-  const code=document.getElementById('j-code').value.trim().toUpperCase();
-  const err=document.getElementById('j-err');
-  if(!name){toast('Enter your name');return;}
-  if(code.length!==8){err.textContent='Code must be 8 characters';err.style.display='block';return;}
-  err.style.display='none';
-  sessionStorage.setItem('wt-name',name);
-  location.href='/room/'+code;
+
+function showMsg(id, text, isErr) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + (isErr ? 'err' : 'ok');
+  el.style.display = 'block';
 }
-document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(document.getElementById('p0').classList.contains('active'))create();else join();});
+
+async function doCreate() {
+  const name = document.getElementById('c-name').value.trim();
+  if (!name) { showMsg('c-msg', 'Please enter your name.', true); return; }
+
+  const btn = document.getElementById('c-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  document.getElementById('c-msg').style.display = 'none';
+
+  try {
+    const res  = await fetch('/create', { method: 'POST' });
+    const data = await res.json();
+
+    if (!data.id) throw new Error('No room ID returned');
+
+    sessionStorage.setItem('wt-name', name);
+    // Redirect to the room
+    window.location.href = '/room/' + data.id;
+
+  } catch (err) {
+    console.error(err);
+    showMsg('c-msg',
+      'Could not create room.\n' +
+      '• Make sure you ran: npm install\n' +
+      '• Then: npm start\n' +
+      '• Open: http://localhost:3000   (not the file directly)',
+      true);
+    btn.disabled = false;
+    btn.textContent = '🎬 Create Room';
+  }
+}
+
+function doJoin() {
+  const name = document.getElementById('j-name').value.trim();
+  const code = document.getElementById('j-code').value.trim().toUpperCase();
+  if (!name) { showMsg('j-msg', 'Please enter your name.', true); return; }
+  if (code.length !== 8) { showMsg('j-msg', 'Room code must be 8 characters.', true); return; }
+  sessionStorage.setItem('wt-name', name);
+  window.location.href = '/room/' + code;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('p0').classList.contains('on')) doCreate();
+  else doJoin();
+});
 </script>
 </body>
 </html>
